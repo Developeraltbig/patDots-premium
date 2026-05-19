@@ -1,0 +1,137 @@
+.feature-grid-section {
+  background-color: #fafafa;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 6rem 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.feature-grid-container {
+  max-width: 1400px;
+  width: 100%;
+  border-top: 1px solid #e4e4e7;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.feature-cell {
+  padding: 3.5rem 2.5rem;
+  border-right: 1px solid #e4e4e7;
+  border-bottom: 1px solid #e4e4e7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.header-cell {
+  grid-column: span 2;
+  align-items: flex-start;
+}
+
+.grid-header-title {
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #18181b;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.feature-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.feature-num {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #8b5cf6;
+  line-height: 1;
+}
+
+.feature-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #18181b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.feature-desc {
+  color: #71717a;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+@media (min-width: 1025px) {
+  .feature-cell:nth-child(3),
+  .feature-cell:nth-child(7) {
+    border-right: none;
+  }
+  .feature-cell:nth-child(4),
+  .feature-cell:nth-child(5),
+  .feature-cell:nth-child(6),
+  .feature-cell:nth-child(7) {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .feature-cell:nth-child(1),
+  .feature-cell:nth-child(3),
+  .feature-cell:nth-child(5),
+  .feature-cell:nth-child(7) {
+    border-right: none;
+  }
+  .feature-cell:nth-child(6),
+  .feature-cell:nth-child(7) {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-grid-section {
+    padding: 4rem 1.5rem;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-cell {
+    grid-column: span 1;
+  }
+
+  .feature-cell {
+    padding: 2.5rem 1.5rem;
+    border-right: none;
+  }
+
+  .feature-cell:nth-child(7) {
+    border-bottom: none;
+  }
+
+  .grid-header-title {
+    font-size: 1.8rem;
+  }
+
+  .feature-num {
+    font-size: 1.6rem;
+  }
+
+  .feature-title {
+    font-size: 1.05rem;
+  }
+}

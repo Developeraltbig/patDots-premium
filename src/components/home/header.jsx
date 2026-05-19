@@ -18,10 +18,8 @@ const Header = () => {
   return (
     <header className={`premium-header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-container">
-        {/* Left: Logo & Branding */}
         <Link to="/" className="brand-link">
           <div className="logo-mark">
-            {/* Inline SVG matching the 'P' logo in your image */}
             <svg
               viewBox="0 0 100 100"
               fill="none"

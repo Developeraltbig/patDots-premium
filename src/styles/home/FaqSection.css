@@ -1,0 +1,127 @@
+/* --- OVERALL SECTION --- */
+.faq-section {
+  background-color: #ffffff; /* Pure white as per screenshot */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 6rem 2rem;
+  width: 100%;
+}
+
+.faq-container {
+  max-width: 800px; /* Keep it relatively narrow for readability */
+  margin: 0 auto;
+}
+
+/* --- HEADER --- */
+.faq-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.faq-header h2 {
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #18181b; /* Dark Slate / Black */
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* --- FAQ LIST & ITEMS --- */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.faq-item {
+  border-bottom: 1px solid #f0f0f0; /* Very light gray separator */
+}
+
+/* Add a top border only to the first item */
+.faq-item:first-child {
+  border-top: 1px solid #f0f0f0;
+}
+
+/* --- QUESTION BUTTON --- */
+.faq-question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 1.5rem 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  outline: none;
+}
+
+.faq-question span {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #18181b; /* Dark gray */
+  padding-right: 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.faq-item:hover .faq-question span {
+  color: #000000;
+}
+
+.faq-icon {
+  color: #18181b;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Rotate icon when open */
+.faq-item.open .faq-icon {
+  transform: rotate(180deg);
+}
+
+/* --- ANSWER SECTION (Smooth Animation Magic) --- */
+.faq-answer-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  /* Start collapsed */
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-item.open .faq-answer-wrapper {
+  /* Expand to full content height */
+  grid-template-rows: 1fr;
+}
+
+.faq-answer {
+  overflow: hidden; /* Required for the grid trick to hide content */
+}
+
+.faq-answer p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #52525b; /* Lighter text for the answer */
+  margin: 0;
+  /* Add padding ONLY inside the inner div so it doesn't break the 0 height calculation */
+  padding-bottom: 1.5rem;
+  padding-right: 2rem;
+}
+
+/* --- RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .faq-section {
+    padding: 4rem 1.5rem;
+  }
+
+  .faq-header h2 {
+    font-size: 1.8rem;
+  }
+
+  .faq-question {
+    padding: 1.25rem 0;
+  }
+
+  .faq-question span {
+    font-size: 1rem;
+  }
+}

@@ -5,13 +5,11 @@
   top: 0;
   left: 0;
   z-index: 1000;
-  /* Deep dark navy/black base with a subtle purple radial glow */
   background: radial-gradient(circle at 50% 150%, #1e1136 0%, #06070a 60%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
-/* Add a subtle noise texture to match the starry look in the image */
 .premium-header::before {
   content: "";
   position: absolute;
@@ -27,7 +25,6 @@
 
 .premium-header.scrolled {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-  /* Slight glassmorphism when scrolling */
   background: rgba(6, 7, 10, 0.95);
   backdrop-filter: blur(10px);
 }
@@ -41,7 +38,6 @@
   align-items: center;
 }
 
-/* Logo & Branding */
 .brand-link {
   display: flex;
   align-items: center;
@@ -80,7 +76,7 @@
 }
 
 .brand-subtitle {
-  color: #a1a1aa; /* Light slate grey */
+  color: #a1a1aa;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 0.75rem;
@@ -89,7 +85,6 @@
   letter-spacing: 0.02em;
 }
 
-/* Login Button */
 .btn-login-outline {
   background: transparent;
   color: #ffffff;
@@ -97,7 +92,7 @@
   padding: 8px 32px;
   font-size: 0.95rem;
   font-weight: 500;
-  border-radius: 2px; /* Very slight rounding to match the sharp aesthetic */
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: inherit;
@@ -109,7 +104,6 @@
   border-color: #ffffff;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .header-container {
     padding: 1rem 1.25rem;
