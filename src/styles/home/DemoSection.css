@@ -82,6 +82,7 @@
   color: #71717a;
   line-height: 1.7;
   margin: 0;
+  text-align: end;
 }
 
 /* --- GRID LAYOUT --- */
@@ -122,6 +123,7 @@
   line-height: 1.7;
   margin: 0;
   font-style: italic;
+  text-align: left;
 }
 
 .input-footer {
@@ -166,7 +168,7 @@
 }
 
 .check-icon {
-  color: #8b5cf6; /* Purple checkmark */
+  color: #8b5cf6;
 }
 
 .generate-item span {
@@ -175,7 +177,6 @@
   font-weight: 500;
 }
 
-/* --- RIGHT COLUMN: OUTPUT CARD --- */
 .output-card-wrapper {
   background-color: #fdfdfd;
   border: 1px solid #e4e4e7;
@@ -190,10 +191,10 @@
   height: 100%;
   overflow-y: auto;
   padding: 30px;
-  padding-right: 15px; /* Leave room for scrollbar */
+  padding-right: 15px;
+  text-align: left;
 }
 
-/* MOCK SECTION TEXT */
 .mock-section {
   margin-bottom: 2.5rem;
 }

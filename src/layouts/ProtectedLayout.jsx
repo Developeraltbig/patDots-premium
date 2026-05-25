@@ -1,6 +1,8 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Sidebar from "../components/dashboard/Sidebar";
+import "../styles/dashboard/DashboardLayout.css";
 
 const ProtectedLayout = () => {
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
@@ -10,8 +12,9 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <div className="protected-dashboard-layout">
-      <main className="protected-main-content">
+    <div className="dashboard-wrapper">
+      <Sidebar />
+      <main className="dashboard-main">
         <Outlet />
       </main>
     </div>

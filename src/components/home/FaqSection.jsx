@@ -74,7 +74,6 @@ const FaqSection = () => {
                   <span>{item.question}</span>
                   <ChevronDown size={20} className="faq-icon" strokeWidth={2} />
                 </button>
-
                 
                 <div className="faq-answer-wrapper">
                   <div className="faq-answer">

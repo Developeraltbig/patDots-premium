@@ -72,6 +72,13 @@
   margin: 0;
 }
 
+.feature-num {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #8b5cf6;
+  line-height: 1rem;
+}
+
 @media (min-width: 1025px) {
   .feature-cell:nth-child(3),
   .feature-cell:nth-child(7) {

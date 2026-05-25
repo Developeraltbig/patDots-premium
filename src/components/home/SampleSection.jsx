@@ -2,7 +2,6 @@ import React from "react";
 import { FileText } from "lucide-react";
 import "../../styles/home/SampleSection.css";
 
-// Data array to keep the component clean and maintainable
 const sampleCards = [
   {
     title: "Search",

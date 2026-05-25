@@ -229,3 +229,29 @@
     min-height: 100px;
   }
 }
+
+.attachment-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-file-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #d4d4d8;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-file-badge button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}

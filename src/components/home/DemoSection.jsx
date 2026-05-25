@@ -69,6 +69,7 @@ const DemoSection = () => {
               <br />A Complete Patent Application Out.
             </h2>
           </div>
+
           <div className="header-right">
             <p>
               Every draft includes all required sections, formatted per USPTO
