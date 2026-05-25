@@ -1,0 +1,156 @@
+.loader-page {
+  width: 100vw;
+  height: 100vh;
+  background-color: #06070a; /* Dark space theme */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle purple glow */
+.loader-page::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  z-index: 0;
+}
+
+.loader-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 20px;
+}
+
+/* Pulsing Logo */
+.loader-logo-pulse {
+  width: 70px;
+  height: 70px;
+  background-color: #8b5cf6; /* Vibrant purple */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  animation: pulse-ring 2s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+.pulse-svg {
+  width: 35px;
+  height: 35px;
+}
+
+@keyframes pulse-ring {
+  to {
+    box-shadow: 0 0 0 30px rgba(139, 92, 246, 0);
+  }
+}
+
+.loader-title {
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.loader-subtitle {
+  color: #a1a1aa;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  width: 100%;
+  height: 12px;
+  background-color: #27272a; /* Dark gray track */
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #8b5cf6; /* Purple fill */
+  border-radius: 10px;
+  transition: width 0.3s ease-out;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* Status Text */
+.loader-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d4d4d8;
+  font-size: 1rem;
+  font-weight: 500;
+  animation: fade-in-up 0.5s ease;
+}
+
+.status-icon {
+  color: #8b5cf6;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Change .loader-page to .loader-page-overlay */
+.loader-page-overlay {
+  position: fixed; /* Keep it locked to screen */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #06070a; /* Dark space theme */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  z-index: 9999; /* Ensure it covers navbar and everything else */
+}
+
+.loader-page-overlay::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  z-index: 0;
+}
