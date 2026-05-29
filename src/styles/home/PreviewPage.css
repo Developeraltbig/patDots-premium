@@ -17,6 +17,7 @@
   color: #18181b;
   margin-bottom: 2rem;
   letter-spacing: -0.02em;
+  text-align: start;
 }
 
 .preview-layout {
@@ -41,9 +42,10 @@
 .document-header {
   background-color: #8b5cf6; /* Purple header */
   color: #ffffff;
-  padding: 16px 24px;
+  padding: 16px 40px;
   font-weight: 500;
   font-size: 1.05rem;
+  text-align: start;
 }
 
 .document-body {
@@ -62,6 +64,7 @@
   font-weight: 500;
   display: block;
   margin-bottom: 0.5rem;
+  text-align: start;
 }
 
 .doc-section-title {
@@ -69,6 +72,7 @@
   font-weight: 700;
   color: #18181b;
   margin: 0 0 1rem 0;
+  text-align: start;
 }
 
 .doc-section-text {
@@ -76,6 +80,7 @@
   line-height: 1.8;
   font-size: 0.95rem;
   margin: 0 0 1rem 0;
+  text-align: start;
 }
 
 /* --- BLUR EFFECT & OVERLAY --- */
