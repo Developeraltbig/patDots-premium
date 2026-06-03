@@ -1,54 +1,22 @@
 .premium-sidebar {
   width: 280px;
   height: 100vh;
-  background-color: #0c0f17; /* Very dark navy, almost black */
+  background-color: #0b0f19; /* Very dark navy */
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
+  z-index: 100;
 }
 
 .sidebar-brand {
   padding: 24px;
 }
 
-.sidebar-brand a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-}
-
-.brand-logo-wrapper {
-  width: 36px;
-  height: 36px;
-  background-color: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-svg {
-  width: 24px;
-  height: 24px;
-  fill: #0c0f17;
-}
-
-.brand-text h2 {
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.brand-text span {
-  color: #a1a1aa;
-  font-size: 0.7rem;
-  font-weight: 500;
+.sidebar-logo-img {
+  height: 40px; /* Adjust based on your SVG */
 }
 
 .sidebar-action {
@@ -58,12 +26,12 @@
 .btn-new-draft {
   width: 100%;
   background-color: #ffffff;
-  color: #0c0f17;
+  color: #0f172a;
   border: none;
   border-radius: 6px;
   padding: 12px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,14 +50,14 @@
   padding: 0 16px 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; /* Spacing between cards */
 }
 
 .sidebar-draft-card {
   background-color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -101,36 +69,41 @@
 .sidebar-draft-card.active {
   background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
+  border-left: 3px solid #8b5cf6; /* Purple left border */
 }
 
 .draft-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.draft-type-indicator {
-  width: 2px;
-  height: 12px;
-  background-color: #8b5cf6; /* Purple indicator */
-  border-radius: 2px;
+  margin-bottom: 8px;
 }
 
 .draft-meta-text {
-  color: #a1a1aa;
-  font-size: 0.75rem;
+  color: #a491db;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  border-left: 1px solid #a491db;
+  padding-left: 5px;
 }
 
 .draft-title {
   color: #e4e4e7;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 400;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  text-align: start;
 }
 
-/* Custom Scrollbar */
+.sidebar-loader,
+.sidebar-empty {
+  color: #64748b;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
 .custom-scrollbar-dark::-webkit-scrollbar {
   width: 4px;
 }

@@ -1,6 +1,6 @@
 /* --- LAYOUT WRAPPER --- */
 .checkout-page-wrapper {
-  background-color: #f8fafc; /* Very light cool grey */
+  background-color: #f8fafc;
   min-height: 100vh;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -9,7 +9,7 @@
 .checkout-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 120px 2rem 5rem 2rem; /* padding-top accounts for the fixed header */
+  padding: 120px 2rem 5rem 2rem;
 }
 
 /* --- HEADER --- */
@@ -32,47 +32,46 @@
 
 /* --- GRID --- */
 .checkout-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  align-items: start;
+}
+
+.checkout-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* --- CARDS --- */
 .checkout-card {
   background-color: #ffffff;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .card-heading {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #18181b;
-  margin: 0 0 2rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
 }
 
 /* --- FORM INPUTS --- */
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-size: 0.95rem;
-  color: #18181b;
-  font-weight: 500;
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .checkout-input {
   width: 100%;
-  padding: 14px 16px;
-  border: 1px solid #e4e4e7;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  color: #3f3f46;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #334155;
   outline: none;
   transition: border-color 0.2s;
   background-color: #ffffff;
@@ -83,8 +82,8 @@
 }
 
 .checkout-input:disabled {
-  background-color: #fafafa;
-  color: #a1a1aa;
+  background-color: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
 }
 
@@ -94,28 +93,123 @@
   gap: 16px;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
-}
-.mt-4 {
-  margin-top: 1rem;
+/* --- EMAIL VERIFICATION SPECIFICS (As per screenshot) --- */
+.btn-verify-dark {
+  background-color: #1e293b; /* Dark navy */
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.secure-badge {
+.btn-verify-dark:hover:not(:disabled) {
+  background-color: #0f172a;
+}
+
+.btn-verify-dark:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Locked Placeholder (The dashed box) */
+.locked-payment-placeholder {
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* OTP Block */
+.otp-verification-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.otp-instruction {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.otp-input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.otp-input {
+  letter-spacing: 0.25rem;
+  font-family: monospace;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.btn-verify-success {
+  background-color: #10b981; /* Green */
+  color: white;
+  border: none;
+  padding: 0 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-verify-success:disabled {
+  background-color: #a7f3d0;
+  cursor: not-allowed;
+}
+
+.btn-change-email {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-change-email:hover {
+  color: #334155;
+}
+
+.verified-badge-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+.verified-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #71717a;
-  font-size: 0.85rem;
+  gap: 10px;
 }
 
-.lock-icon {
-  color: #a1a1aa;
+.verified-email {
+  color: #166534;
+  font-weight: 500;
+}
+
+.text-green-500 {
+  color: #22c55e;
 }
 
 /* --- ORDER SUMMARY --- */
 .summary-card {
-  background-color: #fcfcfc; /* Slightly off-white to distinguish from left card */
+  background-color: #fcfcfc;
 }
 
 .summary-list {
@@ -131,12 +225,12 @@
 }
 
 .item-name {
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: #3f3f46;
 }
 
 .item-price {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #18181b;
 }
@@ -145,7 +239,7 @@
   width: 100%;
   height: 1px;
   background-color: #e4e4e7;
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
 }
 
 /* Addons */
@@ -162,7 +256,7 @@
 .btn-add-addon {
   background: transparent;
   border: none;
-  color: #8b5cf6; /* Purple add text */
+  color: #8b5cf6;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -170,14 +264,13 @@
 }
 
 .btn-add-addon:hover {
-  color: #7c3aed;
   text-decoration: underline;
 }
 
 .btn-remove-addon {
   background: transparent;
   border: none;
-  color: #ef4444; /* Red remove text */
+  color: #ef4444;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -208,16 +301,45 @@
   color: #18181b;
 }
 
-/* Pay Button */
+/* Payment Actions */
+.payment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.terms-checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.terms-checkbox-group input {
+  margin-top: 4px;
+  cursor: pointer;
+  accent-color: #8b5cf6;
+}
+
+.terms-checkbox-group label {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.terms-checkbox-group a {
+  color: #8b5cf6;
+  text-decoration: underline;
+}
+
 .btn-pay-now {
   width: 100%;
-  background-color: #090a0f; /* Deep dark navy */
+  background-color: #090a0f;
   color: #ffffff;
   border: none;
   padding: 16px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 500;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -231,6 +353,11 @@
   cursor: not-allowed;
 }
 
+.disabled-placeholder {
+  background-color: #e4e4e7;
+  color: #a1a1aa;
+}
+
 /* Privacy Assurance */
 .privacy-assurance {
   display: flex;
@@ -242,112 +369,174 @@
 }
 
 .shield-icon {
-  color: #8b5cf6; /* Purple shield */
+  color: #8b5cf6;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-/* --- OTP MODAL OVERLAY --- */
-.otp-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(9, 10, 15, 0.8);
-  backdrop-filter: blur(5px);
-  z-index: 2000;
+/* Utils */
+.mt-6 {
+  margin-top: 1.5rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.secure-badge {
   display: flex;
-  justify-content: center;
   align-items: center;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.otp-modal-card {
-  background-color: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.otp-modal-card h2 {
-  font-size: 1.5rem;
-  color: #18181b;
-  margin: 0 0 1rem 0;
-}
-
-.otp-modal-card p {
+  gap: 8px;
   color: #71717a;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin: 0 0 2rem 0;
+  font-size: 0.85rem;
 }
 
-.otp-input {
-  width: 100%;
-  padding: 16px;
-  font-size: 2rem;
-  letter-spacing: 0.5rem;
-  text-align: center;
-  border: 2px solid #e4e4e7;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  outline: none;
-  transition: border-color 0.2s;
-  font-family: monospace;
+.lock-icon {
+  color: #a1a1aa;
 }
 
-.otp-input:focus {
-  border-color: #8b5cf6;
-}
-
-.btn-verify-otp {
-  width: 100%;
-  background-color: #8b5cf6;
-  color: #ffffff;
-  border: none;
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-verify-otp:hover:not(:disabled) {
-  background-color: #7c3aed;
-}
-
-.btn-verify-otp:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-  }
-}
-
-/* --- RESPONSIVENESS --- */
-@media (max-width: 1024px) {
-  .checkout-grid {
-    grid-template-columns: 1fr;
+    transform: translateY(0);
   }
 }
 
 @media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
   .checkout-main {
     padding: 100px 1.5rem 4rem 1.5rem;
   }
+}
 
-  .checkout-card {
-    padding: 24px;
-  }
+/* --- EMAIL VERIFICATION SPECIFICS (Matches Screenshot) --- */
+
+.email-field {
+  background-color: #f1f5f9; /* Soft blue-grey tint */
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.email-field:disabled {
+  background-color: #e2e8f0;
+  opacity: 0.7;
+}
+
+.btn-verify-dark {
+  background-color: #1e293b; /* Dark navy */
+  color: white;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-block; /* Forces it to size to its content, not stretch */
+  margin-top: 16px;
+}
+
+.btn-verify-dark:hover:not(:disabled) {
+  background-color: #0f172a;
+}
+
+.btn-verify-dark:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* --- OTP BOX (Matches Screenshot) --- */
+.otp-verification-box {
+  margin-top: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #ffffff;
+}
+
+.otp-input-field {
+  width: 100%;
+  text-align: center;
+  letter-spacing: 4px; /* Space out the numbers when typing */
+  font-size: 1.15rem;
+  padding: 14px;
+  margin-bottom: 16px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.otp-input-field::placeholder {
+  letter-spacing: 2px; /* Space out the placeholder text */
+  font-size: 1rem;
+  color: #94a3b8;
+}
+
+.otp-action-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-verify-success {
+  background-color: #10b981; /* Green */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-verify-success:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.btn-verify-success:disabled {
+  background-color: #6ee7b7;
+  cursor: not-allowed;
+}
+
+.btn-change-email-link {
+  background: none;
+  border: none;
+  color: #3b82f6; /* Blue link */
+  text-decoration: underline;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-change-email-link:hover {
+  color: #2563eb;
+}
+
+/* --- LOCKED PLACEHOLDER (Matches Screenshot) --- */
+.locked-payment-placeholder {
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 1.05rem;
 }

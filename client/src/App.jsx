@@ -1,15 +1,16 @@
 import React, { Suspense, lazy } from "react";
-import { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Layouts
+// Layouts & Static Pages
 import PublicLayout from "./layouts/PublicLayout";
-import CheckoutPage from "./pages/CheckoutPage";
 import ProtectedLayout from "./layouts/ProtectedLayout";
-import Dashboard from "./pages/Dashboard";
+import CheckoutPage from "./pages/CheckoutPage";
 import Preview from "./pages/PreviewPage";
+
+// THE FIX: Import Draft instead of Dashboard
+import Draft from "./components/dashboard/Draft";
 
 // Lazy Loaded Pages
 const Home = lazy(() => import("./pages/Home"));
@@ -27,14 +28,18 @@ function App() {
     <>
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* PUBLIC ROUTES */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/preview/:id" element={<Preview />} />
             <Route path="/checkout/:id" element={<CheckoutPage />} />
           </Route>
+
+          {/* PROTECTED ROUTES */}
           <Route element={<ProtectedLayout />}>
-            <Route path="/draft/:id" element={<Dashboard />} />
+            {/* THE FIX: Use Draft component here */}
+            <Route path="/draft/:id" element={<Draft />} />
           </Route>
 
           {/* CATCH-ALL REDIRECT */}

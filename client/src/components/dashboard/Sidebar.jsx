@@ -1,29 +1,33 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { FileEdit } from "lucide-react";
-import { useGetUserDraftsQuery } from "../../features/api/patentApi";
+import { fetchAllDraft } from "../../store/slices/patentSlice";
+import L1 from "../../assets/images/Patdots-logo.svg";
 import "../../styles/dashboard/Sidebar.css";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { id: activeId } = useParams();
 
-  // RTK Query hooks automatically handle fetching and caching
-  const { data, isLoading } = useGetUserDraftsQuery();
-  const drafts = data?.patents || [];
+  // Use existing Redux state
+  const { drafts, draftsLoading } = useSelector((state) => state.patent);
 
-  const handleNewDraft = () => {
-    navigate("/new-draft");
-  };
+  useEffect(() => {
+    dispatch(fetchAllDraft());
+  }, [dispatch]);
+
+  const handleNewDraft = () => navigate("/new-draft");
 
   const getTruncatedTitle = (title) => {
     if (!title) return "Untitled Draft";
-    const clean = title.replace(/<[^>]+>/g, ""); // Strip any HTML tags
+    const clean = title.replace(/<[^>]+>/g, "");
     return clean.length > 55 ? clean.substring(0, 55) + "..." : clean;
   };
 
   return (
-    <aside className="dashboard-sidebar">
+    <aside className="premium-sidebar">
       {/* 1. Brand Logo */}
       <div className="sidebar-brand">
         <Link to="/" className="brand-link">
@@ -43,7 +47,7 @@ const Sidebar = () => {
             </svg>
           </div>
           <div className="brand-text">
-            <h2>PatDots.ai</h2>
+            <h2 style={{ color: "#fff" }}>PatDots.ai</h2>
             <span>Powered by barcodeIP</span>
           </div>
         </Link>
@@ -59,16 +63,15 @@ const Sidebar = () => {
 
       {/* 3. Drafts List */}
       <div className="sidebar-drafts-list custom-scrollbar-dark">
-        {isLoading ? (
+        {draftsLoading ? (
           <div className="sidebar-loader">Loading...</div>
-        ) : drafts.length === 0 ? (
+        ) : drafts?.length === 0 ? (
           <div className="sidebar-empty">No drafts found.</div>
         ) : (
-          drafts.map((draft) => {
+          drafts?.map((draft) => {
             const isActive = activeId === draft.publicId;
             const planName =
               draft.payments?.planType || draft.payment?.planType || "Basic";
-            // Capitalize first letter of plan
             const planFormatted =
               planName.charAt(0).toUpperCase() + planName.slice(1);
 

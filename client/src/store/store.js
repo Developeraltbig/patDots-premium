@@ -10,36 +10,29 @@ import {
   REGISTER,
 } from "redux-persist";
 
-// Import your slices
 import authReducer from "./slices/authSlice";
 import patentReducer from "./slices/patentSlice";
+import { patentApi } from "./slices/patentApi";
 
-// ----------------------------------------------------------------------
-// FIX: Native Storage Wrapper (Bypasses the Vite/Redux-Persist import bug)
-// ----------------------------------------------------------------------
 const customStorage = {
-  getItem: (key) => {
-    return Promise.resolve(window.localStorage.getItem(key));
-  },
-  setItem: (key, value) => {
-    return Promise.resolve(window.localStorage.setItem(key, value));
-  },
-  removeItem: (key) => {
-    return Promise.resolve(window.localStorage.removeItem(key));
-  },
+  getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
+  setItem: (key, value) =>
+    Promise.resolve(window.localStorage.setItem(key, value)),
+  removeItem: (key) => Promise.resolve(window.localStorage.removeItem(key)),
 };
-// ----------------------------------------------------------------------
 
 const persistConfig = {
   key: "root",
   version: 1,
-  storage: customStorage, // <-- Using the custom storage here
-  whitelist: ["auth"], // We only want to persist the user's login state
+  storage: customStorage,
+  whitelist: ["auth"],
 };
 
+// Combine reducers
 const rootReducer = combineReducers({
   auth: authReducer,
   patent: patentReducer,
+  [patentApi.reducerPath]: patentApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -51,7 +44,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }),
+    }).concat(patentApi.middleware),
 });
 
 export const persistor = persistStore(store);
