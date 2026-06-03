@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import axios from "../../store/axios";
 import {
   FileText,
   Copy,
@@ -15,10 +17,25 @@ import {
   Search,
   Target,
   ArrowRight,
+  Lock,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { fetchDraft } from "../../store/slices/patentSlice";
 import Sidebar from "./Sidebar";
 import "../../styles/dashboard/Draft.css";
+
+// --- DYNAMICALLY LOAD RAZORPAY SCRIPT ---
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const TABS = [
   { id: "draft", label: "Draft", icon: <FileText size={16} /> },
@@ -43,7 +60,7 @@ const SECTIONS_CONFIG = [
   { id: "summary", label: "Summary", num: "05" },
   { id: "description", label: "Detailed Description", num: "06" },
   { id: "advantages", label: "Advantages", num: "07" },
-  { id: "claims", label: "Claims", num: "08" }, // Matched screenshot (removed 10-15)
+  { id: "claims", label: "Claims", num: "08" },
   { id: "forms", label: "USPTO Filing Forms", num: "09" },
 ];
 
@@ -53,9 +70,11 @@ const Draft = () => {
   const navigate = useNavigate();
 
   const { currentDraft, isFetching } = useSelector((state) => state.patent);
+  const { user } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState("draft");
   const [activeVariant, setActiveVariant] = useState("basic");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -75,8 +94,10 @@ const Draft = () => {
   }
 
   const patent = currentDraft;
-  const isNonProv = patent.draftType === "nonprovisional";
-  const draftData = isNonProv ? patent.nonProvisional : patent.provisional;
+  const isCurrentlyNonProv = patent.draftType === "nonprovisional";
+  const draftData = isCurrentlyNonProv
+    ? patent.nonProvisional
+    : patent.provisional;
   const sectionsData = draftData?.[`${activeVariant}_sections`] || {};
 
   // Safe Title Extraction
@@ -86,17 +107,20 @@ const Draft = () => {
     "Untitled Invention";
   const projectTitle = String(rawTitle).replace(/<[^>]+>/g, "");
 
-  // Smooth scroll to section
+  // --- NAVIGATE TO CHECKOUT FOR NON-PROVISIONAL UPGRADE ---
+  const handleUpgradeToNonProvisional = () => {
+    navigate(`/checkout/${id}?addon=nonprovisionalDraftStatus`);
+  };
+
+  // Smooth scroll
   const scrollToSection = (sectionId) => {
     const el = document.getElementById(`sec-${sectionId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const getSectionContent = (secId) => {
     let schemaKey = secId;
-    if (isNonProv) {
+    if (isCurrentlyNonProv) {
       const nonProvMap = {
         title: "title_of_invention",
         background: "background_of_invention",
@@ -111,6 +135,12 @@ const Draft = () => {
     }
     return sectionsData[schemaKey]?.content || "";
   };
+
+  // --- RENDER LOGIC ---
+  const isPaywallView = activeTab === "non-provisional" && !isCurrentlyNonProv;
+  const isWorkspaceView =
+    activeTab === "draft" ||
+    (activeTab === "non-provisional" && isCurrentlyNonProv);
 
   return (
     <div className="dashboard-layout-wrapper">
@@ -136,8 +166,79 @@ const Draft = () => {
           ))}
         </div>
 
-        {/* 3. WORKSPACE GRID */}
-        {activeTab === "draft" && (
+        {/* --- 3A. FEATURE PAYWALL VIEW --- */}
+        {isPaywallView && (
+          <div className="feature-paywall-container custom-scrollbar">
+            <div className="paywall-card">
+              <div className="paywall-header">
+                <div className="paywall-icon-ring">
+                  <FileBadge size={32} className="paywall-icon" />
+                </div>
+                <h2>Upgrade to Non-Provisional</h2>
+                <p>
+                  Transform your provisional draft into a formal, USPTO-ready
+                  utility application.
+                </p>
+              </div>
+
+              <div className="paywall-features">
+                <div className="paywall-feature-item">
+                  <CheckCircle2 size={20} className="text-purple" />
+                  <div>
+                    <h4>Formal Claims Section</h4>
+                    <span>
+                      10-15 independent and dependent claims drafted per USPTO
+                      strict legal standards.
+                    </span>
+                  </div>
+                </div>
+                <div className="paywall-feature-item">
+                  <CheckCircle2 size={20} className="text-purple" />
+                  <div>
+                    <h4>Embodiments & Detailed Description</h4>
+                    <span>
+                      Expanded technical scope referencing detailed drawings and
+                      alternate architectures.
+                    </span>
+                  </div>
+                </div>
+                <div className="paywall-feature-item">
+                  <CheckCircle2 size={20} className="text-purple" />
+                  <div>
+                    <h4>3 Strategic Variants</h4>
+                    <span>
+                      Includes Balanced, Broad, and Technical variants
+                      regenerated specifically for utility filing.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="paywall-footer">
+                <div className="paywall-price-block">
+                  <span className="paywall-price-label">One-time upgrade</span>
+                  <span className="paywall-price-amount">$29.00</span>
+                </div>
+                <button
+                  className="btn-paywall-unlock"
+                  onClick={handleUpgradeToNonProvisional}
+                  disabled={isProcessingPayment}
+                >
+                  {isProcessingPayment ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      Unlock Non-Provisional <Sparkles size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- 3B. WORKSPACE VIEW --- */}
+        {isWorkspaceView && (
           <div className="workspace-scroll-container custom-scrollbar">
             <div className="workspace-grid">
               {/* LEFT OUTLINE */}
@@ -159,7 +260,6 @@ const Draft = () => {
 
               {/* RIGHT DOCUMENT VIEWER */}
               <div className="workspace-document-col">
-                {/* Toolbar */}
                 <div className="document-toolbar">
                   <div className="variant-tabs">
                     <button
@@ -201,11 +301,17 @@ const Draft = () => {
                   </div>
                 </div>
 
-                {/* Document Content Area */}
                 <div className="document-content-area">
                   {SECTIONS_CONFIG.filter((s) => s.id !== "forms").map(
                     (sec) => {
                       const content = getSectionContent(sec.id);
+
+                      // Show loader if the draft is currently processing (e.g., right after purchase)
+                      const isProcessingContent =
+                        patent.status === "processing" ||
+                        draftData?.[`${activeVariant}_status`] ===
+                          "processing" ||
+                        draftData?.[`${activeVariant}_status`] === "generating";
 
                       return (
                         <div
@@ -220,6 +326,11 @@ const Draft = () => {
                               className="doc-sec-text"
                               dangerouslySetInnerHTML={{ __html: content }}
                             />
+                          ) : isProcessingContent ? (
+                            <div className="inline-processing-state">
+                              <div className="spinner-border-sm text-purple"></div>
+                              <span>AI is drafting this section...</span>
+                            </div>
                           ) : (
                             <p className="doc-sec-placeholder">
                               Content is not available for this section.
@@ -232,7 +343,6 @@ const Draft = () => {
                   )}
                 </div>
 
-                {/* Attorney Review Floating Button */}
                 {(patent.payment?.planType === "professional" ||
                   patent.payment?.planType === "enterprise" ||
                   patent.currentPlan === "professional" ||
@@ -244,13 +354,13 @@ const Draft = () => {
               </div>
             </div>
 
-            {/* 4. USPTO FORM BOTTOM BANNER */}
+            {/* USPTO FORM BOTTOM BANNER */}
             <div className="uspto-bottom-banner mt-6">
               <div className="uspto-banner-content">
                 <h3 className="uspto-banner-title">USPTO-FORM</h3>
                 <p className="uspto-banner-desc">
-                  Lorem Ipsum Is Simply Dummy Text Of The Printing And
-                  Typesetting Industry. Lorem Ipsum Has Been
+                  Generate the required USPTO filing forms automatically based
+                  on your draft data. Ready for direct submission.
                 </p>
               </div>
               <button

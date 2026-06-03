@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Lock, ShieldCheck, X, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -29,22 +29,71 @@ const CheckoutPage = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   // --- PRICING & ADDONS STATE ---
-  const basePrice = 149.0;
-  const ndaPrice = 19.0;
-  const diagramPrice = 58.0;
-  const planType = "professional"; // Defaulting to professional for this flow
+  const [searchParams] = useSearchParams();
+  const targetAddon = searchParams.get("addon") || "provisionalDraftStatus";
+  const languageParam = searchParams.get("lang"); // optional e.g., ?addon=ndaTranslations&lang=Hindi
 
-  const [addons, setAddons] = useState({
-    nda: false,
-    diagram: false,
-    provisionalDraftStatus: true,
-  });
+  const PRICING_MAP = {
+    provisionalDraftStatus: {
+      label: "Premium Provisional Draft",
+      price: 149.0,
+    },
+    nonprovisionalDraftStatus: {
+      label: "Non-Provisional Draft Upgrade",
+      price: 29.0,
+    },
+    Diagrams: { label: "Diagrams (Block & Flow)", price: 19.0 },
+    licenseeReport: { label: "Potential Licensees Report", price: 49.0 },
+    searchStatus: { label: "Patent Search", price: 29.0 },
+    deepSearchStatus: { label: "Deep Search", price: 39.0 },
+    formFillingStatus: { label: "USPTO Form Filling", price: 19.0 },
+    AttorneyReviewStatus: { label: "Attorney Review", price: 149.0 },
+    ndaTranslations: {
+      label: `NDA Translation (${languageParam})`,
+      price: 19.0,
+    },
+    draftTranslations: {
+      label: `Draft Translation (${languageParam})`,
+      price: 29.0,
+    },
+  };
+
+  // Initialize addons state dynamically based on the requested addon
+  const initialAddons = {};
+  if (
+    targetAddon === "ndaTranslations" ||
+    targetAddon === "draftTranslations"
+  ) {
+    // Backend expects an array for translations
+    initialAddons[targetAddon] = languageParam ? [languageParam] : [];
+  } else {
+    // Standard boolean addons
+    initialAddons[targetAddon] = true;
+  }
+
+  const [addons, setAddons] = useState(initialAddons);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const totalAmount =
-    basePrice +
-    (addons.nda ? ndaPrice : 0) +
-    (addons.diagram ? diagramPrice : 0);
+  const totalAmount = Object.keys(addons).reduce((sum, key) => {
+    if (addons[key] === true) {
+      return sum + (PRICING_MAP[key]?.price || 0);
+    } else if (Array.isArray(addons[key])) {
+      return sum + addons[key].length * (PRICING_MAP[key]?.price || 0);
+    }
+    return sum;
+  }, 0);
+
+  const toggleAddon = (addonKey) => {
+    setAddons((prev) => {
+      const next = { ...prev };
+      if (next[addonKey]) {
+        delete next[addonKey];
+      } else {
+        next[addonKey] = true;
+      }
+      return next;
+    });
+  };
 
   // --- AUTH / OTP STATE ---
   const [email, setEmail] = useState("");
@@ -60,10 +109,6 @@ const CheckoutPage = () => {
       setStep("verified");
     }
   }, [user]);
-
-  const toggleAddon = (addon) => {
-    setAddons((prev) => ({ ...prev, [addon]: !prev[addon] }));
-  };
 
   // --- 1. SEND OTP ---
   const handleSendOtp = async () => {
@@ -123,8 +168,6 @@ const CheckoutPage = () => {
       // 1. Create Order on Backend
       const orderResponse = await axios.post("/api/payments/create-order", {
         draftId: id,
-        type: "initial",
-        planType: planType,
         addons: addons,
       });
 
@@ -135,10 +178,10 @@ const CheckoutPage = () => {
         amount: amount,
         currency: currency,
         name: "PatDots.ai",
-        description: `Patent Draft - ${planType.charAt(0).toUpperCase() + planType.slice(1)} Plan`,
+        description: `Patent Service - ${PRICING_MAP[targetAddon]?.label || "Addon"}`,
         order_id: order_id,
         prefill: { email: email, name: user?.name || "" },
-        theme: { color: "#8b5cf6" }, // Purple theme
+        theme: { color: "#8b5cf6" },
         handler: async function (response) {
           try {
             const verifyPayload = {
@@ -146,12 +189,8 @@ const CheckoutPage = () => {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               draftId: id,
-              selectedCountry: "US",
               userEmail: email,
-              userName: "",
-              planType: planType,
-              addons: addons,
-              type: "initial",
+              userName: user?.name || "",
             };
 
             const verifyResponse = await axios.post(
@@ -308,59 +347,54 @@ const CheckoutPage = () => {
 
             <div className="summary-list">
               <div className="summary-item">
-                <span className="item-name">Premium Patent Draft</span>
-                <span className="item-price">${basePrice.toFixed(2)}</span>
+                <span className="item-name">
+                  {PRICING_MAP[targetAddon]?.label || targetAddon}
+                </span>
+                <span className="item-price">
+                  $
+                  {(Array.isArray(addons[targetAddon])
+                    ? PRICING_MAP[targetAddon]?.price *
+                      addons[targetAddon].length
+                    : PRICING_MAP[targetAddon]?.price || 0
+                  ).toFixed(2)}
+                </span>
               </div>
 
               <div className="summary-divider"></div>
 
-              <div className="summary-item addon-item">
-                <span className="item-name">NDA Document</span>
-                <div className="addon-action">
-                  {!addons.nda ? (
-                    <button
-                      className="btn-add-addon"
-                      onClick={() => toggleAddon("nda")}
-                    >
-                      Add +
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-remove-addon"
-                      onClick={() => toggleAddon("nda")}
-                    >
-                      Remove <X size={12} />
-                    </button>
-                  )}
-                  <span className="item-price">${ndaPrice.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="summary-divider"></div>
-
-              <div className="summary-item addon-item">
-                <span className="item-name">Diagrams (Block & Flow)</span>
-                <div className="addon-action">
-                  {!addons.diagram ? (
-                    <button
-                      className="btn-add-addon"
-                      onClick={() => toggleAddon("diagram")}
-                    >
-                      Add +
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-remove-addon"
-                      onClick={() => toggleAddon("diagram")}
-                    >
-                      Remove <X size={12} />
-                    </button>
-                  )}
-                  <span className="item-price">${diagramPrice.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="summary-divider"></div>
+              {["Diagrams", "licenseeReport"].map((optKey) => {
+                if (targetAddon === optKey) return null; // Don't show in optionals if it's the main item being bought
+                return (
+                  <React.Fragment key={optKey}>
+                    <div className="summary-item addon-item">
+                      <span className="item-name">
+                        {PRICING_MAP[optKey].label}
+                      </span>
+                      <div className="addon-action">
+                        {!addons[optKey] ? (
+                          <button
+                            className="btn-add-addon"
+                            onClick={() => toggleAddon(optKey)}
+                          >
+                            Add +
+                          </button>
+                        ) : (
+                          <button
+                            className="btn-remove-addon"
+                            onClick={() => toggleAddon(optKey)}
+                          >
+                            Remove <X size={12} />
+                          </button>
+                        )}
+                        <span className="item-price">
+                          ${PRICING_MAP[optKey].price.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="summary-divider"></div>
+                  </React.Fragment>
+                );
+              })}
 
               <div className="summary-total">
                 <span className="total-label">TOTAL</span>
