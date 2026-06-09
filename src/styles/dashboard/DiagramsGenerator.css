@@ -1,0 +1,486 @@
+.diagrams-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Header --- */
+.diagrams-header-card {
+  background: white;
+  padding-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diagrams-header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.diagram-icon-box {
+  width: 48px;
+  height: 48px;
+  background-color: #f3e8ff; /* Light purple tint from image */
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9333ea;
+}
+
+.diagrams-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.diagrams-title p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.addon-badge {
+  background-color: #dcfce7;
+  color: #166534;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Layout Grid --- */
+.diagrams-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* --- Sidebar Cards --- */
+.diagram-selection-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.diagram-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.diagram-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.diagram-card.active {
+  border: 2px solid #3b82f6; /* Selected State */
+  background-color: #fff;
+}
+
+.card-top {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+/* Change icon color when active if desired, though screenshot keeps it subtle */
+.diagram-card.active .card-icon {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.card-text h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.card-text p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.features-list-diagram {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feature-item-d {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.feature-item-d svg {
+  color: #10b981; /* Green check */
+  width: 14px;
+  height: 14px;
+}
+
+.btn-download-diagram {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  background-color: white;
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+}
+
+.diagram-card.active .btn-download-diagram {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+}
+
+/* --- Preview Area --- */
+.diagram-preview-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 550px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.preview-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.btn-expand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.canvas-area {
+  flex-grow: 1;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 40px;
+  position: relative;
+}
+
+/* Dummy Diagram Styles (CSS-only Drawing for demo) */
+.diagram-dummy-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Shapes */
+.d-box {
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 500;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.box-blue {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+.box-purple {
+  background: #e9d5ff;
+  color: #6b21a8;
+  border-color: #d8b4fe;
+}
+.box-green {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.box-yellow {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde047;
+  transform: skewX(-20deg); /* Rhombus attempt */
+  padding: 12px 20px;
+}
+.box-yellow span {
+  display: block;
+  transform: skewX(20deg);
+} /* Fix text */
+
+.box-pill {
+  border-radius: 20px;
+  background: #e2e8f0;
+}
+
+.d-line {
+  width: 30px;
+  height: 2px;
+  background: #cbd5e1;
+}
+
+.d-line-vert {
+  width: 2px;
+  height: 20px;
+  background: #cbd5e1;
+}
+
+.diagram-caption {
+  margin-top: 30px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Info Banner */
+.info-banner {
+  background-color: #eff6ff;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.info-banner svg {
+  color: #2563eb;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-banner p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #1e40af;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .diagrams-grid {
+    grid-template-columns: 1fr;
+  }
+  .canvas-area {
+    min-height: 300px;
+  }
+}
+
+/* *************************************************** */
+
+/* --- EXPAND MODAL STYLES --- */
+.diagram-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(
+    15,
+    23,
+    42,
+    0.75
+  ); /* Dark slate overlay with backdrop blur */
+  backdrop-filter: blur(4px);
+  z-index: 2000; /* Above sidebar and headers */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.diagram-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1000px; /* Large width for diagrams */
+  max-height: 90vh; /* Don't overflow screen height */
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.diagram-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diagram-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-close-modal:hover {
+  background-color: #f1f5f9;
+  color: #ef4444;
+}
+
+.diagram-modal-body {
+  padding: 40px;
+  background-color: #f8fafc;
+  overflow: auto; /* Allow scrolling if image is huge */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.diagram-modal-body img {
+  max-width: 100%;
+  max-height: 70vh;
+  /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); */
+  /* background-color: white;  */
+  padding: 20px;
+  /* border-radius: 4px; */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Zoom IN and Zoom Out functionality */
+
+.diagram-modal-header {
+  position: relative; /* Context for absolute positioning of controls */
+}
+
+.zoom-controls {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.zoom-level {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  padding: 0 10px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.diagram-modal-body img {
+  /* ... existing styles ... */
+  transition: transform 0.2s ease-out; /* Smooth transition for zoom */
+  transform-origin: center center; /* Zoom from the center */
+}

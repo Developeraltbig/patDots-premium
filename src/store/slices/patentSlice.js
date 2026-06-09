@@ -2,6 +2,38 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../axios";
 import { toast } from "react-toastify";
 
+// Restored the licenseGenerate Thunk
+export const licenseGenerate = createAsyncThunk(
+  "patent/licenseGenerate",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `/api/patents/${id}/licensees/generate`,
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const diagramGenerate = createAsyncThunk(
+  "patent/diagramGenerate",
+  async ({ id, activeType }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `/api/patents/${id}/diagrams/generate`,
+        {
+          type: activeType, // We will add support for this flag in backend
+        },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
 // --- Async Thunks ---
 export const fetchAllDraft = createAsyncThunk(
   "patent/user/all",
@@ -10,7 +42,7 @@ export const fetchAllDraft = createAsyncThunk(
       const response = await axios.get(`/api/patents/user/all`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   },
 );
@@ -22,7 +54,7 @@ export const fetchDraft = createAsyncThunk(
       const response = await axios.get(`/api/patents/${id}`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   },
 );
@@ -39,6 +71,21 @@ export const generateDraftAction = createAsyncThunk(
   },
 );
 
+export const reGenerateDraft = createAsyncThunk(
+  "patent/reGenerate",
+  async ({ id, draftType, type }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`/api/patents/draft/regenerate/${id}`, {
+        draftType: draftType,
+        type: type,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
 // --- Slice ---
 const patentSlice = createSlice({
   name: "patent",
@@ -47,6 +94,15 @@ const patentSlice = createSlice({
     isGenerating: false,
     isFetching: false,
     isAllFetching: false,
+
+    // Variant generating states
+    isBasicProvisionalGenerating: false,
+    isBroadProvisionalGenerating: false,
+    isTechnicalProvisionalGenerating: false,
+    isBasicNonProvisionalGenerating: false,
+    isBroadNonProvisionalGenerating: false,
+    isTechnicalNonProvisionalGenerating: false,
+
     drafts: [],
     draftsLoading: true,
     error: null,
@@ -55,6 +111,33 @@ const patentSlice = createSlice({
     setIsGenerating: (state, action) => {
       state.isGenerating = action.payload;
     },
+    setIsFetchLicenseReport: (state, action) => {
+      state.isFetchingLicenseReport = action.payload;
+    },
+    setIsFetchFlowDiagramReport: (state, action) => {
+      state.isFetchingFlowDiagramReport = action.payload;
+    },
+    setIsFetchBlockDiagramReport: (state, action) => {
+      state.isFetchingBlockDiagramReport = action.payload;
+    },
+    setIsBasicProvisionalGenerating: (state, action) => {
+      state.isBasicProvisionalGenerating = action.payload;
+    },
+    setIsBroadProvisionalGenerating: (state, action) => {
+      state.isBroadProvisionalGenerating = action.payload;
+    },
+    setIsTechnicalProvisionalGenerating: (state, action) => {
+      state.isTechnicalProvisionalGenerating = action.payload;
+    },
+    setIsBasicNonProvisionalGenerating: (state, action) => {
+      state.isBasicNonProvisionalGenerating = action.payload;
+    },
+    setIsBroadNonProvisionalGenerating: (state, action) => {
+      state.isBroadNonProvisionalGenerating = action.payload;
+    },
+    setIsTechnicalNonProvisionalGenerating: (state, action) => {
+      state.isTechnicalNonProvisionalGenerating = action.payload;
+    },
     updateDraftFromSocket: (state, action) => {
       const { type, ...payload } = action.payload;
       if (!state.currentDraft) return;
@@ -62,6 +145,7 @@ const patentSlice = createSlice({
       // Can be expanded to handle diagram/license updates via socket
     },
   },
+
   extraReducers: (builder) => {
     builder
       // Generate Draft
@@ -107,5 +191,21 @@ const patentSlice = createSlice({
   },
 });
 
-export const { setIsGenerating, updateDraftFromSocket } = patentSlice.actions;
+export const {
+  setIsGenerating,
+  setLicenseReport,
+  setDiagramReportBlock,
+  setDiagramReportFlow,
+  updateDraftFromSocket,
+  setIsFetchLicenseReport,
+  setIsFetchFlowDiagramReport,
+  setIsFetchBlockDiagramReport,
+  setIsBasicProvisionalGenerating,
+  setIsBroadProvisionalGenerating,
+  setIsTechnicalProvisionalGenerating,
+  setIsBasicNonProvisionalGenerating,
+  setIsBroadNonProvisionalGenerating,
+  setIsTechnicalNonProvisionalGenerating,
+} = patentSlice.actions;
+
 export default patentSlice.reducer;

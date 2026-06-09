@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { FileEdit } from "lucide-react";
+import { FileEdit, LogOut } from "lucide-react";
+import { toast } from "react-toastify";
 import { fetchAllDraft } from "../../store/slices/patentSlice";
+import { logoutUser } from "../../store/slices/authSlice";
 import L1 from "../../assets/images/Patdots-logo.svg";
 import "../../styles/dashboard/Sidebar.css";
 
@@ -13,6 +15,7 @@ const Sidebar = () => {
 
   // Use existing Redux state
   const { drafts, draftsLoading } = useSelector((state) => state.patent);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchAllDraft());
@@ -20,11 +23,23 @@ const Sidebar = () => {
 
   const handleNewDraft = () => navigate("/new-draft");
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (err) {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
   const getTruncatedTitle = (title) => {
     if (!title) return "Untitled Draft";
     const clean = title.replace(/<[^>]+>/g, "");
     return clean.length > 55 ? clean.substring(0, 55) + "..." : clean;
   };
+
+  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
   return (
     <aside className="premium-sidebar">
@@ -99,6 +114,21 @@ const Sidebar = () => {
             );
           })
         )}
+      </div>
+
+      {/* 4. Sidebar Footer (User Profile & Logout) */}
+      <div className="sidebar-footer">
+        <div className="sidebar-divider"></div>
+        <div className="sidebar-user-profile">
+          <div className="user-avatar">{userInitial}</div>
+          <div className="user-email-info" title={user?.email}>
+            {user?.email}
+          </div>
+        </div>
+        <button className="btn-logout" onClick={handleLogout}>
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );

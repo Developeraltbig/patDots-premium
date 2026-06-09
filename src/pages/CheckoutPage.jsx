@@ -201,7 +201,7 @@ const CheckoutPage = () => {
             if (verifyResponse.data.success) {
               toast.success("Payment Successful! Securing your dashboard...");
 
-              // PRO-FIX: Immediately authenticate the user in Redux
+              // Immediately authenticate the user in Redux
               // The backend has already set the HTTP-only JWT cookie in the browser
               if (!isAuthenticated && verifyResponse.data.user) {
                 dispatch(setAuthUser(verifyResponse.data.user));
