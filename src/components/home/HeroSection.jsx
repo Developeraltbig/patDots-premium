@@ -8,9 +8,9 @@ import { setIsGenerating } from "../../store/slices/patentSlice";
 
 // 2. Import RTK Query Mutation (Replaces generateDraftAction)
 import { useGenerateDraftMutation } from "../../store/slices/patentApi";
-
 import { usePatentSocket } from "../../store/slices/usePatentSocket";
 import GenerateLoader from "../../pages/GenerateLoader.jsx";
+import { addPendingDraft } from "../../utils/draftqueueHelper";
 import "../../styles/home/HeroSection.css";
 
 const HeroSection = () => {
@@ -78,11 +78,11 @@ const HeroSection = () => {
     dispatch(setIsGenerating(true));
 
     try {
-      // Use RTK Query mutation instead of dispatching the old thunk
       const result = await generateDraft(formData).unwrap();
 
       if (result.success) {
-        // Setting the roomId activates the usePatentSocket hook!
+        // PASS DRAFT TYPE HERE
+        addPendingDraft(result.draftId, draftType);
         setRoomId(result.draftId);
       } else {
         dispatch(setIsGenerating(false));

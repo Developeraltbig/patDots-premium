@@ -8,9 +8,9 @@ export const setPendingDrafts = (data) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
-export const addPendingDraft = (draftId) => {
+export const addPendingDraft = (draftId, draftType = "provisional") => {
   const drafts = getPendingDrafts();
-  drafts[draftId] = { status: "pending", createdAt: Date.now() };
+  drafts[draftId] = { status: "pending", createdAt: Date.now(), draftType };
   setPendingDrafts(drafts);
 };
 

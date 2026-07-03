@@ -1,16 +1,19 @@
+// File: client/src/pages/PreviewPage.jsx
+
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Check, Lock } from "lucide-react";
 import Header from "../components/home/Header";
 
-// RTK Query Hook (Replaces fetchDraft, useDispatch, and useSelector)
+// RTK Query Hook
 import { useGetDraftByIdQuery } from "../store/slices/patentApi";
+import { getPendingDrafts } from "../utils/draftqueueHelper";
 
 import "../styles/home/PreviewPage.css";
 
-// Configure section order and labels
-const SECTION_ORDER = [
+// Configure section orders for standard drafts
+const PROV_SECTIONS = [
   { id: "title", label: "Title", num: "01" },
   { id: "background", label: "Background", num: "02" },
   { id: "abstract", label: "Abstract", num: "03" },
@@ -21,7 +24,27 @@ const SECTION_ORDER = [
   { id: "claims", label: "Claims (10-15)", num: "08" },
 ];
 
-const UNLOCKED_SECTIONS = ["title", "background", "abstract"];
+const NON_PROV_SECTIONS = [
+  { id: "title_of_invention", label: "Title of Invention", num: "01" },
+  {
+    id: "background_of_invention",
+    label: "Background of Invention",
+    num: "02",
+  },
+  { id: "abstract", label: "Abstract", num: "03" },
+  { id: "fields_of_invention", label: "Fields of Invention", num: "04" },
+  { id: "summary_of_invention", label: "Summary of Invention", num: "05" },
+  { id: "brief_description", label: "Brief Description", num: "06" },
+  { id: "detailed_descriptions", label: "Detailed Description", num: "07" },
+  { id: "claims", label: "Claims", num: "08" },
+];
+
+const SEARCH_SECTIONS = [
+  { id: "extraction", label: "Prior Art Extraction", num: "01" },
+  { id: "mapping", label: "Novelty Mapping", num: "02" },
+  { id: "matrices", label: "Comparison Matrices", num: "03" },
+  { id: "excerpts", label: "Verbatim Excerpts", num: "04" },
+];
 
 const PreviewPage = () => {
   const { id } = useParams();
@@ -46,8 +69,37 @@ const PreviewPage = () => {
     }
   }, [isError, fetchRes, isLoading, navigate]);
 
+  // --- DYNAMIC TYPE DETECTION ---
+  const pendingDrafts = getPendingDrafts();
+  const localDraftType =
+    pendingDrafts[id]?.draftType ||
+    (currentDraft?.draftType === "nonprovisional"
+      ? "nonprovisional"
+      : "provisional");
+
+  let addonKey = "provisionalDraftStatus";
+  let displayTitle = "Provisional Draft";
+  let sectionConfig = PROV_SECTIONS;
+  let unlockedKeys = ["title", "background", "abstract"];
+
+  if (localDraftType === "nonprovisional") {
+    addonKey = "nonprovisionalDraftStatus";
+    displayTitle = "Non-Provisional Draft";
+    sectionConfig = NON_PROV_SECTIONS;
+    unlockedKeys = [
+      "title_of_invention",
+      "background_of_invention",
+      "abstract",
+    ];
+  } else if (localDraftType === "normal_search") {
+    addonKey = "searchStatus";
+    displayTitle = "Patent Search Report";
+    sectionConfig = SEARCH_SECTIONS;
+    unlockedKeys = []; // Everything is locked for search preview
+  }
+
   const handleUnlock = () => {
-    navigate(`/checkout/${id}`);
+    navigate(`/checkout/${id}?addon=${addonKey}`);
   };
 
   if (isLoading || !currentDraft) {
@@ -75,12 +127,10 @@ const PreviewPage = () => {
       : currentDraft?.provisional;
   const sections = draftData?.basic_sections || {};
 
-  const unlockedItems = SECTION_ORDER.filter((s) =>
-    UNLOCKED_SECTIONS.includes(s.id),
+  const unlockedItems = sectionConfig.filter((s) =>
+    unlockedKeys.includes(s.id),
   );
-  const lockedItems = SECTION_ORDER.filter(
-    (s) => !UNLOCKED_SECTIONS.includes(s.id),
-  );
+  const lockedItems = sectionConfig.filter((s) => !unlockedKeys.includes(s.id));
 
   return (
     <div className="preview-page-wrapper">
@@ -88,89 +138,172 @@ const PreviewPage = () => {
 
       <main className="preview-main">
         <h1 className="preview-page-title">
-          Your{" "}
-          {currentDraft?.draftType === "nonprovisional"
-            ? "Non-Provisional"
-            : "Provisional"}{" "}
-          Draft Is Ready To Unlock.
+          Your {displayTitle} Is Ready To Unlock.
         </h1>
 
         <div className="preview-layout">
           {/* LEFT COLUMN: Document */}
           <div className="preview-document-col">
             <div className="document-header">
-              {/* Strip HTML tags for the header title */}
               {(
                 sections?.title?.content ||
                 sections?.title_of_invention?.content ||
-                "Untitled Patent"
+                "Untitled Invention"
               ).replace(/<[^>]+>/g, "")}
             </div>
 
             <div className="document-body custom-scrollbar">
-              {/* --- UNLOCKED SECTIONS --- */}
-              {unlockedItems.map((sec) => {
-                const content =
-                  sections[sec.id]?.content || "Content generating...";
-                return (
-                  <div className="doc-section" key={sec.id}>
-                    <span className="doc-section-label">Section {sec.num}</span>
-                    <h3 className="doc-section-title">{sec.label}</h3>
-                    <div
-                      className="doc-section-text"
-                      dangerouslySetInnerHTML={{ __html: content }}
-                    />
-                  </div>
-                );
-              })}
+              {/* --- SEARCH PREVIEW UI --- */}
+              {localDraftType === "normal_search" ? (
+                <div className="doc-section">
+                  <h3
+                    className="doc-section-title"
+                    style={{
+                      borderBottom: "1px solid #f1f5f9",
+                      paddingBottom: "12px",
+                    }}
+                  >
+                    Identified Patent References
+                  </h3>
 
-              {/* --- LOCKED/BLURRED SECTIONS --- */}
-              <div className="blurred-section-wrapper mt-8">
-                <div className="blurred-content">
-                  {lockedItems.slice(0, 2).map((sec) => (
-                    <div className="doc-section" key={sec.id}>
-                      <span className="doc-section-label">
-                        Section {sec.num}
-                      </span>
-                      <h3 className="doc-section-title">{sec.label}</h3>
-                      <div className="doc-section-text">
+                  <div className="blurred-section-wrapper mt-8">
+                    <div className="blurred-content">
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          style={{
+                            background: "#ffffff",
+                            border: "1px solid #e4e4e7",
+                            borderRadius: "8px",
+                            padding: "20px",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight: "700",
+                              fontSize: "1.1rem",
+                              marginBottom: "8px",
+                              color: "#18181b",
+                            }}
+                          >
+                            Result {i}: patent/US20230{i}123A1/en
+                          </div>
+                          <div
+                            style={{
+                              display: "inline-block",
+                              backgroundColor: "#f0fdf4",
+                              color: "#16a34a",
+                              border: "1px solid #bbf7d0",
+                              padding: "4px 10px",
+                              borderRadius: "6px",
+                              fontSize: "0.75rem",
+                              fontWeight: "700",
+                              marginBottom: "12px",
+                            }}
+                          >
+                            MAPPING SCORE: HIGH
+                          </div>
+                          <p
+                            style={{
+                              color: "#71717a",
+                              fontSize: "0.95rem",
+                              margin: 0,
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            This reference considerably covers the core
+                            technical components and functional mechanism
+                            described in the invention. The specification
+                            details a parallel processing method that closely
+                            maps to the claimed features.
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="lock-overlay">
+                      <div className="lock-modal">
+                        <h2>View Full Search Report</h2>
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Sed do eiusmod tempor incididunt ut labore et
-                          dolore magna aliqua. Ut enim ad minim veniam, quis
-                          nostrud exercitation ullamco laboris nisi ut aliquip
-                          ex ea commodo consequat.
+                          Unlock to view all novelty-defeating references,
+                          comparison matrices, verbatim excerpts, and mapping
+                          scores.
                         </p>
+                        <button
+                          className="btn-unlock-purple"
+                          onClick={handleUnlock}
+                        >
+                          Unlock full report
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                {/* THE DARK LOCK OVERLAY */}
-                <div className="lock-overlay">
-                  <div className="lock-modal">
-                    <h2>5 More Sections Locked</h2>
-                    <p>
-                      field, summary, description, advantages, and claims. plus
-                      2 alternative draft variants.
-                    </p>
-                    <button
-                      className="btn-unlock-purple"
-                      onClick={handleUnlock}
-                    >
-                      Unlock full draft
-                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* --- STANDARD DRAFT PREVIEW UI --- */
+                <>
+                  {unlockedItems.map((sec) => {
+                    const content =
+                      sections[sec.id]?.content || "Content generating...";
+                    return (
+                      <div className="doc-section" key={sec.id}>
+                        <span className="doc-section-label">
+                          Section {sec.num}
+                        </span>
+                        <h3 className="doc-section-title">{sec.label}</h3>
+                        <div
+                          className="doc-section-text"
+                          dangerouslySetInnerHTML={{ __html: content }}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  <div className="blurred-section-wrapper mt-8">
+                    <div className="blurred-content">
+                      {lockedItems.slice(0, 2).map((sec) => (
+                        <div className="doc-section" key={sec.id}>
+                          <span className="doc-section-label">
+                            Section {sec.num}
+                          </span>
+                          <h3 className="doc-section-title">{sec.label}</h3>
+                          <div className="doc-section-text">
+                            <p>
+                              Lorem ipsum dolor sit amet, consectetur adipiscing
+                              elit. Sed do eiusmod tempor incididunt ut labore
+                              et dolore magna aliqua.
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="lock-overlay">
+                      <div className="lock-modal">
+                        <h2>{lockedItems.length} More Sections Locked</h2>
+                        <p>
+                          Unlock to access full claims, detailed description,
+                          advantages, and alternative draft variants.
+                        </p>
+                        <button
+                          className="btn-unlock-purple"
+                          onClick={handleUnlock}
+                        >
+                          Unlock full draft
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* RIGHT COLUMN: Sidebar Checklist & Addons */}
           <div className="preview-sidebar-col">
             <div className="checklist-container">
-              {SECTION_ORDER.map((sec) => {
-                const isUnlocked = UNLOCKED_SECTIONS.includes(sec.id);
+              {sectionConfig.map((sec) => {
+                const isUnlocked = unlockedKeys.includes(sec.id);
                 return (
                   <div
                     className={`checklist-item ${isUnlocked ? "unlocked" : "locked"}`}

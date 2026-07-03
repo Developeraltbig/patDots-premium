@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { getPendingDrafts } from "../../utils/draftqueueHelper";
 import {
   FileText,
   Copy,
@@ -155,9 +156,50 @@ const Draft = () => {
 
   const [activeTab, setActiveTab] = useState("draft");
   const [activeVariant, setActiveVariant] = useState("basic");
+  const [hasInitializedTab, setHasInitializedTab] = useState(false);
 
   const [editingSection, setEditingSection] = useState(null);
   const [editContent, setEditContent] = useState("");
+
+  useEffect(() => {
+    if (patent && !hasInitializedTab) {
+      let initialTab = "draft"; // default
+
+      // Check what they just clicked/generated using localStorage
+      const pending = getPendingDrafts();
+      const localType = pending[id]?.draftType;
+
+      // Smart routing logic based on purchased addons or intent
+      if (localType === "normal_search" && patent.addons?.searchStatus) {
+        initialTab = "search";
+      } else if (
+        localType === "nonprovisional" &&
+        patent.addons?.nonprovisionalDraftStatus
+      ) {
+        initialTab = "non-provisional";
+      } else if (
+        localType === "provisional" &&
+        patent.addons?.provisionalDraftStatus
+      ) {
+        initialTab = "draft";
+      }
+      // Fallbacks for legacy patents or direct navigations
+      else if (
+        patent.addons?.searchStatus &&
+        !patent.addons?.provisionalDraftStatus &&
+        !patent.addons?.nonprovisionalDraftStatus
+      ) {
+        initialTab = "search";
+      } else if (patent.addons?.nonprovisionalDraftStatus) {
+        initialTab = "non-provisional";
+      } else if (patent.draftType === "nonprovisional") {
+        initialTab = "non-provisional";
+      }
+
+      setActiveTab(initialTab);
+      setHasInitializedTab(true);
+    }
+  }, [patent, hasInitializedTab, id]);
 
   const quillModules = {
     toolbar: [
