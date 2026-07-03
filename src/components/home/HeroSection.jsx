@@ -3,10 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { Paperclip, ArrowRight, X } from "lucide-react";
 import { toast } from "react-toastify";
 
-import {
-  generateDraftAction,
-  setIsGenerating,
-} from "../../store/slices/patentSlice";
+// 1. Import UI State Action
+import { setIsGenerating } from "../../store/slices/patentSlice";
+
+// 2. Import RTK Query Mutation (Replaces generateDraftAction)
+import { useGenerateDraftMutation } from "../../store/slices/patentApi";
+
 import { usePatentSocket } from "../../store/slices/usePatentSocket";
 import GenerateLoader from "../../pages/GenerateLoader.jsx";
 import "../../styles/home/HeroSection.css";
@@ -14,6 +16,9 @@ import "../../styles/home/HeroSection.css";
 const HeroSection = () => {
   const dispatch = useDispatch();
   const { isGenerating } = useSelector((state) => state.patent);
+
+  // --- RTK QUERY MUTATION ---
+  const [generateDraft] = useGenerateDraftMutation();
 
   // --- STATE ---
   const [activeTab, setActiveTab] = useState("Provisional");
@@ -24,7 +29,7 @@ const HeroSection = () => {
   const fileInputRef = useRef(null);
 
   // --- SOCKET INTEGRATION ---
-  // This custom hook (from your old code) listens to the room.
+  // This custom hook listens to the room.
   // When the backend finishes, it triggers navigate(`/preview/${roomId}`)
   usePatentSocket(roomId);
 
@@ -56,8 +61,12 @@ const HeroSection = () => {
     }
 
     // Map UI tab to backend draftType
-    const draftType =
-      activeTab === "Non-Provisional" ? "nonprovisional" : "provisional";
+    let draftType = "provisional";
+    if (activeTab === "Non-Provisional") {
+      draftType = "nonprovisional";
+    } else if (activeTab === "Search") {
+      draftType = "normal_search";
+    }
 
     const formData = new FormData();
     formData.append("inventionText", inventionText);
@@ -69,7 +78,8 @@ const HeroSection = () => {
     dispatch(setIsGenerating(true));
 
     try {
-      const result = await dispatch(generateDraftAction(formData)).unwrap();
+      // Use RTK Query mutation instead of dispatching the old thunk
+      const result = await generateDraft(formData).unwrap();
 
       if (result.success) {
         // Setting the roomId activates the usePatentSocket hook!
@@ -80,7 +90,11 @@ const HeroSection = () => {
       }
     } catch (error) {
       dispatch(setIsGenerating(false));
-      toast.error(error.message || "An unexpected error occurred.");
+      toast.error(
+        error?.data?.message ||
+          error.message ||
+          "An unexpected error occurred.",
+      );
     }
   };
 

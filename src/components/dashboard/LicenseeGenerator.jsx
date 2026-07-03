@@ -2,11 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import axios from "../../store/axios";
+
+// RTK Query Hooks 
 import {
-  licenseGenerate,
-  setIsFetchLicenseReport,
-} from "../../store/slices/patentSlice";
+  useDownloadLicenseeReportMutation,
+  useGenerateLicenseesMutation,
+} from "../../store/slices/patentApi";
+
+// Sockets & UI loading states
+import { setIsFetchLicenseReport } from "../../store/slices/patentSlice";
 import "../../styles/dashboard/LicenseeGenerator.css";
 
 // Icons
@@ -46,13 +50,17 @@ const LicenseeGenerator = ({ patentData }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
+  // --- RTK QUERY MUTATIONS ---
+  const [downloadReport, { isLoading: isDownloading }] =
+    useDownloadLicenseeReportMutation();
+  const [generateLicensees] = useGenerateLicenseesMutation();
+
   // Redux state
   const { currentDraft, isFetchingLicenseReport } = useSelector(
     (state) => state.patent,
   );
 
   const [loading, setLoading] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [expandedId, setExpandedId] = useState(0);
 
   // The source of truth is always Redux
@@ -76,11 +84,11 @@ const LicenseeGenerator = ({ patentData }) => {
   const generateReport = async () => {
     setLoading(true);
     try {
-      // This endpoint pushes the job to the BullMQ queue in the backend
-      await dispatch(licenseGenerate(id)).unwrap();
+      // Trigger the backend BullMQ job via RTK Query mutation
+      await generateLicensees(id).unwrap();
       dispatch(setIsFetchLicenseReport(true));
     } catch (error) {
-      toast.error("Analysis failed. Please try again.");
+      toast.error(error?.data?.message || "Analysis failed. Please try again.");
       dispatch(setIsFetchLicenseReport(false));
     } finally {
       setLoading(false);
@@ -88,30 +96,18 @@ const LicenseeGenerator = ({ patentData }) => {
   };
 
   const handleDownloadPDF = async () => {
-    setIsDownloading(true);
     try {
-      const response = await axios.post(
-        `/api/patents/${patentData.publicId || id}/licensees/download`,
-        {},
-        { responseType: "blob" },
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = await downloadReport(patentData.publicId || id).unwrap();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `Potential_Licensees_Report_${patentData.publicId || id}.pdf`,
-      );
+      link.setAttribute("download", `Potential_Licensees_Report_${id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-
       toast.success("Report downloaded successfully!");
     } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
+      toast.error(error?.data?.message || "Download failed. Please try again.");
     }
   };
 

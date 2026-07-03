@@ -124,8 +124,8 @@
 }
 
 .rank-badge {
-  width: 28px;
-  height: 28px;
+  /* width: 28px;
+  height: 28px; */
   background-color: #f1f5f9;
   color: #64748b;
   border-radius: 6px;

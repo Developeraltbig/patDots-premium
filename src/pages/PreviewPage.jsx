@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Check, Lock } from "lucide-react";
 import Header from "../components/home/Header";
-import { fetchDraft } from "../store/slices/patentSlice";
+
+// RTK Query Hook (Replaces fetchDraft, useDispatch, and useSelector)
+import { useGetDraftByIdQuery } from "../store/slices/patentApi";
+
 import "../styles/home/PreviewPage.css";
 
 // Configure section order and labels
@@ -24,35 +26,31 @@ const UNLOCKED_SECTIONS = ["title", "background", "abstract"];
 const PreviewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const { currentDraft } = useSelector((state) => state.patent);
+  // --- RTK QUERY AUTOMAGIC ---
+  const {
+    data: fetchRes,
+    isLoading,
+    isError,
+  } = useGetDraftByIdQuery(id, { skip: !id });
+  const currentDraft = fetchRes?.data || fetchRes;
 
+  // Handle errors and missing drafts gracefully
   useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        setIsLoading(true);
-        const res = await dispatch(fetchDraft(id)).unwrap();
-        if (!res.success) {
-          toast.error("Draft not found");
-          navigate("/");
-        }
-      } catch (err) {
-        toast.error("Failed to load draft data.");
-        navigate("/");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (id) loadDraft();
-  }, [id, dispatch, navigate]);
+    if (isError) {
+      toast.error("Failed to load draft data.");
+      navigate("/");
+    } else if (fetchRes && !fetchRes.success && !isLoading) {
+      toast.error("Draft not found");
+      navigate("/");
+    }
+  }, [isError, fetchRes, isLoading, navigate]);
 
   const handleUnlock = () => {
     navigate(`/checkout/${id}`);
   };
 
-  if (isLoading) {
+  if (isLoading || !currentDraft) {
     return (
       <div className="preview-page-wrapper">
         <Header />
@@ -102,10 +100,11 @@ const PreviewPage = () => {
           <div className="preview-document-col">
             <div className="document-header">
               {/* Strip HTML tags for the header title */}
-              {(sections?.title?.content || "Untitled Patent").replace(
-                /<[^>]+>/g,
-                "",
-              )}
+              {(
+                sections?.title?.content ||
+                sections?.title_of_invention?.content ||
+                "Untitled Patent"
+              ).replace(/<[^>]+>/g, "")}
             </div>
 
             <div className="document-body custom-scrollbar">

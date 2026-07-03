@@ -12,7 +12,7 @@ import {
 
 import authReducer from "./slices/authSlice";
 import patentReducer from "./slices/patentSlice";
-import { patentApi } from "./slices/patentApi";
+import { apiSlice } from "./slices/apiSlice"; // <-- Corrected path
 
 const customStorage = {
   getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
@@ -32,7 +32,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   patent: patentReducer,
-  [patentApi.reducerPath]: patentApi.reducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -44,7 +44,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(patentApi.middleware),
+    }).concat(apiSlice.middleware),
 });
 
 export const persistor = persistStore(store);

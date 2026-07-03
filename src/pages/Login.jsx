@@ -3,7 +3,16 @@ import { useDispatch } from "react-redux";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowLeft, Mail, Lock, X } from "lucide-react";
-import { loginUser, forgotPassword } from "../store/slices/authSlice";
+
+// 1. Import RTK Query Hooks (Replacing old Thunks)
+import {
+  useLoginUserMutation,
+  useForgotPasswordMutation,
+} from "../store/slices/authApi";
+
+// 2. Import synchronous action to update Redux UI state after successful login
+import { setAuthUser } from "../store/slices/authSlice";
+
 import "../styles/Login.css";
 
 const Login = () => {
@@ -16,29 +25,38 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  // --- RTK QUERY MUTATIONS ---
+  // RTK Query provides the loading states automatically!
+  const [loginUser, { isLoading: isLoggingIn }] = useLoginUserMutation();
+  const [forgotPassword, { isLoading: isForgotLoading }] =
+    useForgotPasswordMutation();
 
   // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotLoading, setForgotLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return toast.error("Please fill in all fields");
 
-    setLoading(true);
     try {
-      // RTK unwrap() throws an error if the thunk is rejected.
-      // If it succeeds, it returns the payload (the user object).
-      await dispatch(loginUser({ email, password })).unwrap();
+      // .unwrap() throws an error if the backend returns a 4xx/5xx status
+      const res = await loginUser({ email, password }).unwrap();
+
+      // Update Redux auth state with the user object returned from backend
+      if (res.success && res.user) {
+        dispatch(setAuthUser(res.user));
+      }
 
       toast.success("Welcome back!");
       navigate(from, { replace: true });
     } catch (err) {
-      toast.error(err || "Invalid credentials. Please try again.");
-    } finally {
-      setLoading(false);
+      toast.error(
+        err?.data?.message ||
+          err?.message ||
+          "Invalid credentials. Please try again.",
+      );
     }
   };
 
@@ -46,16 +64,18 @@ const Login = () => {
     e.preventDefault();
     if (!forgotEmail) return toast.error("Please enter your email");
 
-    setForgotLoading(true);
     try {
-      await dispatch(forgotPassword(forgotEmail)).unwrap();
+      await forgotPassword(forgotEmail).unwrap();
+
       toast.success("If an account exists, a reset link has been sent.");
       setShowForgotModal(false);
       setForgotEmail("");
     } catch (error) {
-      toast.error(error || "Something went wrong. Please try again.");
-    } finally {
-      setForgotLoading(false);
+      toast.error(
+        error?.data?.message ||
+          error?.message ||
+          "Something went wrong. Please try again.",
+      );
     }
   };
 
@@ -100,7 +120,7 @@ const Login = () => {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
+                  disabled={isLoggingIn}
                 />
               </div>
             </div>
@@ -124,17 +144,17 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
+                  disabled={isLoggingIn}
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoggingIn}
               className="btn-login-submit"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {isLoggingIn ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
@@ -175,17 +195,17 @@ const Login = () => {
                     placeholder="name@company.com"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    disabled={forgotLoading}
+                    disabled={isForgotLoading}
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={forgotLoading || !forgotEmail}
+                disabled={isForgotLoading || !forgotEmail}
                 className="btn-login-submit mt-4"
               >
-                {forgotLoading ? "Sending Link..." : "Send Reset Link"}
+                {isForgotLoading ? "Sending Link..." : "Send Reset Link"}
               </button>
             </form>
           </div>

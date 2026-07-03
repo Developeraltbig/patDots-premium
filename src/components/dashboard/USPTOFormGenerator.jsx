@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "../../store/axios";
 import { toast } from "react-toastify";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -7,7 +6,9 @@ import { PDFDocument } from "pdf-lib";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import "../../styles/dashboard/USPTOFormGenerator.css";
-import { FileText, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { FileText } from "lucide-react";
+
+import { useSaveUsptoFormMutation } from "../../store/slices/patentApi";
 
 // --- ICONS ---
 const FileTextIcon = () => (
@@ -30,7 +31,7 @@ const FileTextIcon = () => (
 );
 
 // ============================================================================
-// 1. UTILITIES & HELPERS (Ported directly from project2 server.js)
+// 1. UTILITIES & HELPERS
 // ============================================================================
 const PROVISIONAL_FEES = { micro: 65, small: 130, large: 325 };
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -108,7 +109,6 @@ const addPdfHelpers = (form) => {
   return { setText, check };
 };
 
-// Docxtemplater ADS cleanup
 function normalizeDocxTemplateTags(zip) {
   const xmlFiles = Object.keys(zip.files).filter((name) =>
     name.endsWith(".xml"),
@@ -126,6 +126,9 @@ function normalizeDocxTemplateTags(zip) {
 // 2. MAIN COMPONENT
 // ============================================================================
 export default function USPTOFormGenerator({ patentData, setPatentData }) {
+  // RTK Query Mutation
+  const [saveUsptoForm, { isLoading: isSaving }] = useSaveUsptoFormMutation();
+
   // --- STATE ---
   const [formData, setFormData] = useState({
     filingType: "provisional",
@@ -183,13 +186,11 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
   const [foreignPriorities, setForeignPriorities] = useState([]);
   const [practitioners, setPractitioners] = useState([]);
 
-  const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // --- POPULATE DATA FROM DB ON LOAD ---
   useEffect(() => {
     if (patentData) {
-      // We map from patentData.indiaForm since the schema keys were merged
       const saved = patentData.indiaForm || {};
       setFormData((prev) => ({
         ...prev,
@@ -251,7 +252,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
 
   // --- SAVE FORM STATE TO BACKEND ---
   const handleSaveForm = async () => {
-    setIsSaving(true);
     try {
       const payload = {
         ...formData,
@@ -269,21 +269,20 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
           priority_date: f.foreignFilingDate,
         })),
       };
-      const res = await axios.put(
-        `/api/patents/${patentData.draftId}/uspto-form`,
-        payload,
-      );
-      setPatentData((prev) => ({ ...prev, indiaForm: res.data.indiaForm }));
+
+      await saveUsptoForm({ id: patentData.draftId, data: payload }).unwrap();
+
+      if (typeof setPatentData === "function") {
+        setPatentData(); // Triggers RTK Query refetch in Draft.jsx
+      }
       toast.success("Progress saved successfully!");
     } catch (err) {
       toast.error("Failed to save progress.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
   // ============================================================================
-  // 3. PDF/DOCX GENERATION ENGINE (Ported from Project 2 server.js)
+  // 3. PDF/DOCX GENERATION ENGINE
   // ============================================================================
   const fetchTemplate = async (name) => {
     const res = await fetch(`/templates/${name}`);
@@ -639,7 +638,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       generatedDate: todayISO(),
       filingContext: "New non-provisional utility application package",
       secrecyOrderFlag: "No",
-
       inventors: inventors.map((inv, i) => ({
         inventorNumber: i + 1,
         prefix: inv.prefix,
@@ -670,7 +668,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
         inventorEmail: inv.inventorEmail,
         inventorPhone: inv.inventorPhone,
       })),
-
       useCustomerNumber: yes(formData.useCustomerNumber) ? "Yes" : "No",
       customerNumber: formData.customerNumber,
       correspondenceName: formData.correspondenceName,
@@ -683,7 +680,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       correspondenceEmail: formData.correspondenceEmail,
       correspondencePhone: formData.correspondencePhone,
       additionalCorrespondenceEmails: formData.additionalCorrespondenceEmails,
-
       subjectMatter: formData.subjectMatter || "Utility",
       entityStatus: formData.entityStatus,
       smallEntityClaimed: ["small", "micro"].includes(formData.entityStatus)
@@ -692,10 +688,8 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       microEntityClaimed: formData.entityStatus === "micro" ? "Yes" : "No",
       totalDrawingSheets: drawingSheets(formData),
       suggestedFigureForPublication: formData.suggestedFigureForPublication,
-
       requestEarlyPublicationFlag: formData.requestEarlyPublicationFlag || "No",
       nonpublicationRequestFlag: formData.nonpublicationRequestFlag || "No",
-
       representativeType: formData.poaAppointmentType || "",
       representativeCustomerNumber: formData.representativeCustomerNumber,
       representativeRegistrationNumber:
@@ -707,7 +701,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
             `${p.name}${p.registrationNumber ? ` (${p.registrationNumber})` : ""}`,
         )
         .join("; "),
-
       domesticBenefits: dBenefits.length
         ? dBenefits
         : [
@@ -733,7 +726,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       aiaTransitionStatementApplies: "No",
       pdxOptOut: formData.pdxOptOut || "No",
       epoSearchResultsOptOut: formData.epoSearchResultsOptOut || "No",
-
       applicants:
         formData.applicantType === "inventor"
           ? [
@@ -788,7 +780,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
                 assigneeCountry: "N/A",
               },
             ],
-
       signature: toEsignature(formData.signatureName),
       signatureDate: formData.signatureDate,
       signatureFirstName: stripSlashes(formData.signatureName).split(/\s+/)[0],
@@ -809,10 +800,9 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       .generate({ type: "arraybuffer", compression: "DEFLATE" });
   };
 
-  // --- ZIP BUNDLING HELPER LOGIC (Exact parity with Project 2) ---
+  // --- ZIP BUNDLING HELPER LOGIC ---
   const appendMicroEntityCertificates = async (zip, basePrefix) => {
     if (formData.entityStatus !== "micro") return;
-
     if (inventors.length <= 1) {
       const microBytes = await fillMicroEntity(inventors[0]);
       zip.file(
@@ -821,7 +811,6 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       );
       return;
     }
-
     for (let i = 0; i < inventors.length; i += 1) {
       const microBytes = await fillMicroEntity(inventors[i]);
       zip.file(
@@ -832,12 +821,8 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
   };
 
   const appendPOAFiles = async (zip, basePrefix) => {
-    // Default to 'yes' if undefined
     if ((formData.includePOA || "yes") === "no") return;
-
     const applicantType = formData.applicantType || "inventor";
-
-    // If applicants are inventors and there are multiple, generate one POA per inventor
     if (applicantType === "inventor" && inventors.length > 1) {
       for (let i = 0; i < inventors.length; i += 1) {
         const signerName = inventorLegalName(inventors[i]);
@@ -854,13 +839,10 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
       }
       return;
     }
-
-    // Otherwise, generate a single POA for the entity/single-inventor
     const signerName =
       applicantType === "inventor"
         ? inventorLegalName(inventors[0])
         : stripSlashes(formData.signatureName);
-
     const poaBytes = await fillPOA({
       applicantType,
       signerName,
@@ -892,9 +874,7 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
         await appendMicroEntityCertificates(zip, "2");
         await appendPOAFiles(zip, "3");
       } else {
-        // Non-Provisional
         zip.file("1-Utility-Transmittal-AIA15.pdf", await fillTransmittal());
-
         for (let i = 0; i < inventors.length; i += 1) {
           const declarationBytes = await fillDeclaration(inventors[i]);
           zip.file(
@@ -902,11 +882,8 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
             declarationBytes,
           );
         }
-
         await appendMicroEntityCertificates(zip, "3");
         await appendPOAFiles(zip, "4");
-
-        // Use arraybuffer to securely pass docxtemplater data into JSZip
         const adsBytes = await fillADS();
         zip.file("5-ADS-Patent-Center-Entry-Sheet.docx", adsBytes);
       }
@@ -925,7 +902,7 @@ export default function USPTOFormGenerator({ patentData, setPatentData }) {
   const isNonProv = formData.filingType === "nonprovisional";
 
   // ============================================================================
-  // 4. RENDER UI (Faithful to Project 2 index.html & CSS)
+  // 4. RENDER UI
   // ============================================================================
   return (
     <div className="form-generator-container fg-shell">

@@ -1,13 +1,20 @@
-import axios from "../../store/axios";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { generateAndDownloadNDA } from "../../utils/ndaDocumentGenerator";
 import "../../styles/dashboard/NdaGenerator.css";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchDraft } from "../../store/slices/patentSlice";
+
+// RTK Query Hooks
+import {
+  useSaveNdaMutation,
+  useTranslateArrayMutation,
+} from "../../store/slices/patentApi";
+import {
+  useCreateOrderMutation,
+  useVerifyPaymentMutation,
+} from "../../store/slices/paymentApi";
 
 // --- ICONS ---
-
 const FileIcon = () => (
   <svg
     width="24"
@@ -149,21 +156,6 @@ const DownloadIcon = () => (
     <line x1="12" y1="15" x2="12" y2="3"></line>
   </svg>
 );
-const CheckIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-);
-
 const CloseIcon = () => (
   <svg
     width="24"
@@ -211,10 +203,14 @@ const ALL_LANGUAGES = [
 ];
 
 const NdaGenerator = ({ patentData, setPatentData }) => {
-  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  const [isSaving, setIsSaving] = useState(false);
+  // --- RTK QUERY MUTATIONS ---
+  const [saveNda, { isLoading: isSaving }] = useSaveNdaMutation();
+  const [translateArray] = useTranslateArrayMutation();
+  const [createOrder] = useCreateOrderMutation();
+  const [verifyPayment] = useVerifyPaymentMutation();
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -301,13 +297,13 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
     }
 
     try {
-      // 1. Create Order using the dynamic Add-on route
-      const orderRes = await axios.post("/api/payments/create-order", {
+      // 1. Create Order via RTK Query
+      const orderRes = await createOrder({
         draftId: patentData.draftId,
-        addons: { ndaTranslations: selectedNewLangs }, // Exactly what backend expects
-      });
+        addons: { ndaTranslations: selectedNewLangs },
+      }).unwrap();
 
-      const { id: order_id, amount, currency } = orderRes.data;
+      const { id: order_id, amount, currency } = orderRes;
 
       // 2. Open Razorpay
       const options = {
@@ -319,17 +315,17 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
         order_id,
         handler: async function (response) {
           try {
-            // 3. Verify Payment
-            const verifyRes = await axios.post("/api/payments/verify-payment", {
+            // 3. Verify Payment via RTK Query
+            const verifyRes = await verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               draftId: patentData.draftId,
               userEmail: user?.email || patentData.userEmail,
               userName: user?.name || "",
-            });
+            }).unwrap();
 
-            if (verifyRes.data.success) {
+            if (verifyRes.success) {
               toast.success("Languages purchased successfully!");
               // Refresh Redux State via the prop passed from Draft.jsx
               if (typeof setPatentData === "function") {
@@ -359,7 +355,7 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
       });
       rzp.open();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Could not initiate payment.");
+      toast.error(err?.data?.message || "Could not initiate payment.");
       setIsProcessingPayment(false);
     }
   };
@@ -371,17 +367,14 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
-      await axios.put(`/api/patents/${patentData.draftId}/nda`, formData);
+      await saveNda({ id: patentData.draftId, data: formData }).unwrap();
       if (typeof setPatentData === "function") {
         setPatentData(); // Refreshes the Redux State
       }
       toast.success("NDA progress saved!");
     } catch (error) {
       toast.error("Failed to save progress");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -397,7 +390,7 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
 
     try {
       // 1. Save state
-      await axios.put(`/api/patents/${patentData.draftId}/nda`, formData);
+      await saveNda({ id: patentData.draftId, data: formData }).unwrap();
 
       // 2. If English, direct generation
       if (langCode === "en") {
@@ -408,7 +401,6 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
       }
 
       // 3. Translate User Inputs via Backend
-      // CRITICAL FIX: Added 'purpose' to be translated as it contains sentences
       const inputsToTranslate = [
         formData.disclosingName || "",
         formData.disclosingAddress || "",
@@ -416,32 +408,26 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
         formData.receivingAddress || "",
         formData.disclosingSigName || "",
         formData.receivingSigName || "",
-        formData.purpose || "Evaluation of the invention", // Add default if empty
+        formData.purpose || "Evaluation of the invention",
       ];
 
-      const res = await axios.post("/api/patents/translate-array", {
+      const res = await translateArray({
         texts: inputsToTranslate,
         targetLanguage: langCode,
-      });
+      }).unwrap();
 
-      if (!res.data.success) throw new Error("Translation failed");
-
-      // Debugging: Check what AWS returned
-      // console.log("Original:", inputsToTranslate);
-      // console.log("Translated:", res.data.translations);
+      if (!res.success) throw new Error("Translation failed");
 
       // 4. Construct Translated Data Object
-      // We merge formData to keep non-translated fields (dates, phones, emails)
       const translatedData = {
         ...formData,
-        disclosingName: res.data.translations[0],
-        disclosingAddress: res.data.translations[1],
-        receivingName: res.data.translations[2],
-        receivingAddress: res.data.translations[3],
-        disclosingSigName: res.data.translations[4],
-        receivingSigName: res.data.translations[5],
-        // Special handling: 'purpose' might be used in the doc generator
-        purpose: res.data.translations[6],
+        disclosingName: res.translations[0],
+        disclosingAddress: res.translations[1],
+        receivingName: res.translations[2],
+        receivingAddress: res.translations[3],
+        disclosingSigName: res.translations[4],
+        receivingSigName: res.translations[5],
+        purpose: res.translations[6],
       };
 
       // 5. Generate with Translated Data
@@ -449,7 +435,6 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
 
       toast.success(`${langCode.toUpperCase()} NDA downloaded!`);
     } catch (error) {
-      // console.error("Generation Error:", error);
       toast.error("Failed to generate document.");
     } finally {
       setIsGenerating(false);

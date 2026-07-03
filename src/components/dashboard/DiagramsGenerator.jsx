@@ -4,11 +4,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import plantumlEncoder from "plantuml-encoder";
 import { usePatentSocket } from "../../store/slices/usePatentSocket";
+
+// 1. Import synchronous UI state setters
 import {
-  diagramGenerate,
   setIsFetchFlowDiagramReport,
   setIsFetchBlockDiagramReport,
 } from "../../store/slices/patentSlice";
+
+// 2. Import RTK Query Mutation (Replaces diagramGenerate thunk)
+import { useGenerateDiagramsMutation } from "../../store/slices/patentApi";
+
 import "../../styles/dashboard/DiagramsGenerator.css";
 
 // Icons
@@ -260,6 +265,9 @@ const DiagramsGenerator = ({ patentData }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
+  // RTK Query Mutation for generating diagrams
+  const [generateDiagramsMutation] = useGenerateDiagramsMutation();
+
   // Activate socket listener for updates
   usePatentSocket(id);
 
@@ -304,8 +312,8 @@ const DiagramsGenerator = ({ patentData }) => {
       dispatch(setIsFetchFlowDiagramReport(true));
     }
 
-    // Call backend API which triggers the BullMQ job
-    dispatch(diagramGenerate({ id, activeType }))
+    // Call backend API which triggers the BullMQ job using RTK Query
+    generateDiagramsMutation({ id, activeType })
       .unwrap()
       .catch(() => {
         toast.error("Failed to start diagram generation");
@@ -313,7 +321,7 @@ const DiagramsGenerator = ({ patentData }) => {
           dispatch(setIsFetchBlockDiagramReport(false));
         else dispatch(setIsFetchFlowDiagramReport(false));
       });
-  }, [activeType, id, patentData, dispatch]);
+  }, [activeType, id, patentData, dispatch, generateDiagramsMutation]);
 
   const getImageUrl = (code) => {
     if (!code) return null;

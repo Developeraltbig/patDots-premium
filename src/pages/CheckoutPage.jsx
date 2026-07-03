@@ -3,7 +3,18 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Lock, ShieldCheck, X, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "../store/axios";
+
+// RTK Query Hooks
+import {
+  useSendOtpMutation,
+  useVerifyOtpMutation,
+} from "../store/slices/authApi";
+
+import {
+  useCreateOrderMutation,
+  useVerifyPaymentMutation,
+} from "../store/slices/paymentApi";
+
 import { setAuthUser } from "../store/slices/authSlice";
 import Header from "../components/home/Header";
 import "../styles/home/CheckoutPage.css";
@@ -25,13 +36,21 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Redux state to auto-verify if the user is already logged in
+  // Redux state
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+  // --- RTK QUERY MUTATIONS ---
+  const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
+  const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
+  const [createOrder] = useCreateOrderMutation();
+  const [verifyPayment] = useVerifyPaymentMutation();
+
+  const emailLoading = isSendingOtp || isVerifyingOtp;
 
   // --- PRICING & ADDONS STATE ---
   const [searchParams] = useSearchParams();
   const targetAddon = searchParams.get("addon") || "provisionalDraftStatus";
-  const languageParam = searchParams.get("lang"); // optional e.g., ?addon=ndaTranslations&lang=Hindi
+  const languageParam = searchParams.get("lang");
 
   const PRICING_MAP = {
     provisionalDraftStatus: {
@@ -58,16 +77,13 @@ const CheckoutPage = () => {
     },
   };
 
-  // Initialize addons state dynamically based on the requested addon
   const initialAddons = {};
   if (
     targetAddon === "ndaTranslations" ||
     targetAddon === "draftTranslations"
   ) {
-    // Backend expects an array for translations
     initialAddons[targetAddon] = languageParam ? [languageParam] : [];
   } else {
-    // Standard boolean addons
     initialAddons[targetAddon] = true;
   }
 
@@ -99,7 +115,6 @@ const CheckoutPage = () => {
   const [email, setEmail] = useState("");
   const [step, setStep] = useState("input"); // 'input' | 'verify' | 'verified'
   const [otpCode, setOtpCode] = useState("");
-  const [emailLoading, setEmailLoading] = useState(false);
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
 
   // Auto-verify if user is already logged in
@@ -115,17 +130,15 @@ const CheckoutPage = () => {
     if (!email || !email.includes("@") || !email.includes(".")) {
       return toast.error("Please enter a valid email address.");
     }
-    setEmailLoading(true);
+
     try {
-      const res = await axios.post("/api/auth/send-otp", { email });
-      if (res.data.success) {
+      const res = await sendOtp({ email }).unwrap();
+      if (res.success) {
         setStep("verify");
         toast.info("Verification code sent to your email.");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send code.");
-    } finally {
-      setEmailLoading(false);
+      toast.error(error?.data?.message || "Failed to send code.");
     }
   };
 
@@ -134,20 +147,15 @@ const CheckoutPage = () => {
     if (otpCode.length !== 6) {
       return toast.error("Please enter the 6-digit code.");
     }
-    setEmailLoading(true);
+
     try {
-      const res = await axios.post("/api/auth/verify-otp", {
-        email,
-        otp: otpCode,
-      });
-      if (res.data.success) {
+      const res = await verifyOtp({ email, otp: otpCode }).unwrap();
+      if (res.success) {
         setStep("verified");
         toast.success("Email verified successfully!");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid or expired code.");
-    } finally {
-      setEmailLoading(false);
+      toast.error(error?.data?.message || "Invalid or expired code.");
     }
   };
 
@@ -165,13 +173,13 @@ const CheckoutPage = () => {
     }
 
     try {
-      // 1. Create Order on Backend
-      const orderResponse = await axios.post("/api/payments/create-order", {
+      // 1. Create Order via RTK Query
+      const orderResponse = await createOrder({
         draftId: id,
         addons: addons,
-      });
+      }).unwrap();
 
-      const { id: order_id, amount, currency } = orderResponse.data;
+      const { id: order_id, amount, currency } = orderResponse;
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
@@ -193,18 +201,15 @@ const CheckoutPage = () => {
               userName: user?.name || "",
             };
 
-            const verifyResponse = await axios.post(
-              "/api/payments/verify-payment",
-              verifyPayload,
-            );
+            // 2. Verify Payment via RTK Query
+            const verifyResponse = await verifyPayment(verifyPayload).unwrap();
 
-            if (verifyResponse.data.success) {
+            if (verifyResponse.success) {
               toast.success("Payment Successful! Securing your dashboard...");
 
-              // Immediately authenticate the user in Redux
-              // The backend has already set the HTTP-only JWT cookie in the browser
-              if (!isAuthenticated && verifyResponse.data.user) {
-                dispatch(setAuthUser(verifyResponse.data.user));
+              // Immediately authenticate the user in Redux if not already
+              if (!isAuthenticated && verifyResponse.user) {
+                dispatch(setAuthUser(verifyResponse.user));
               }
 
               // Smooth redirect to the Protected Dashboard
@@ -214,7 +219,8 @@ const CheckoutPage = () => {
             }
           } catch (err) {
             toast.error(
-              "Payment verification failed. If money was deducted, please contact support.",
+              err?.data?.message ||
+                "Payment verification failed. If money was deducted, please contact support.",
             );
             setIsProcessing(false);
           }
@@ -233,7 +239,9 @@ const CheckoutPage = () => {
       });
       paymentObject.open();
     } catch (error) {
-      toast.error("An error occurred during checkout initiation.");
+      toast.error(
+        error?.data?.message || "An error occurred during checkout initiation.",
+      );
       setIsProcessing(false);
     }
   };
@@ -287,7 +295,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  {/* VERIFY BUTTON (Only visible before OTP is sent) */}
+                  {/* VERIFY BUTTON */}
                   {step === "input" && (
                     <button
                       className="btn-verify-dark"
@@ -298,7 +306,7 @@ const CheckoutPage = () => {
                     </button>
                   )}
 
-                  {/* OTP VERIFICATION BOX (Matches your screenshot) */}
+                  {/* OTP VERIFICATION BOX */}
                   {step === "verify" && (
                     <div className="otp-verification-box animate-fade-in">
                       <input
@@ -336,7 +344,7 @@ const CheckoutPage = () => {
               )}
             </div>
 
-            {/* 2. Locked Payment Placeholder (The dashed box) */}
+            {/* 2. Locked Payment Placeholder */}
             {step !== "verified" && (
               <div className="locked-payment-placeholder animate-fade-in">
                 Verify email to unlock payment
@@ -363,7 +371,7 @@ const CheckoutPage = () => {
               <div className="summary-divider"></div>
 
               {["Diagrams", "licenseeReport"].map((optKey) => {
-                if (targetAddon === optKey) return null; // Don't show in optionals if it's the main item being bought
+                if (targetAddon === optKey) return null; // Don't show in optionals if it's the main item
                 return (
                   <React.Fragment key={optKey}>
                     <div className="summary-item addon-item">
@@ -412,11 +420,11 @@ const CheckoutPage = () => {
                     />
                     <label htmlFor="terms">
                       I agree to the{" "}
-                      <a href="/terms" target="_blank">
+                      <a href="/terms" target="_blank" rel="noreferrer">
                         terms of service
                       </a>{" "}
                       and{" "}
-                      <a href="/privacy" target="_blank">
+                      <a href="/privacy" target="_blank" rel="noreferrer">
                         privacy policy
                       </a>
                       .

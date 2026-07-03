@@ -94,6 +94,7 @@
   grid-template-columns: 280px 1fr;
   gap: 24px;
   align-items: start;
+  min-width: 0;
 }
 
 /* --- LEFT OUTLINE --- */
@@ -157,6 +158,8 @@
   flex-direction: column;
   position: relative;
   min-height: 800px;
+  min-width: 0;
+  width: 100%;
 }
 
 .document-toolbar {
@@ -221,6 +224,9 @@
 
 /* Document Body */
 .document-content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 40px 60px;
   background-color: #ffffff;
   border-radius: 0 0 8px 8px;
@@ -243,10 +249,19 @@
   font-size: 0.95rem;
   line-height: 1.8;
   text-align: start;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
 }
 
 .doc-sec-text p {
   margin-bottom: 1.2rem;
+  max-width: 100%;
+}
+
+.doc-sec-text * {
+  max-width: 100%;
 }
 
 .doc-sec-placeholder {
@@ -567,5 +582,135 @@
   }
   .btn-paywall-unlock {
     justify-content: center;
+  }
+}
+
+/* --- SECTION HEADER & ACTIONS --- */
+.doc-sec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.doc-sec-header .doc-sec-title {
+  margin-bottom: 0; /* Override previous margin since header handles layout */
+}
+
+.doc-sec-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Editor Action Buttons */
+.btn-editor-edit,
+.btn-editor-cancel,
+.btn-editor-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-editor-edit {
+  background: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-editor-edit:hover {
+  background: #f8fafc;
+  color: #2563eb;
+  border-color: #cbd5e1;
+}
+
+.btn-editor-cancel {
+  background: white;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.btn-editor-cancel:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.btn-editor-save {
+  background: #22c55e;
+  color: white;
+  border: 1px solid #22c55e;
+}
+
+.btn-editor-save:hover:not(:disabled) {
+  background: #16a34a;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+}
+
+.btn-editor-save:disabled,
+.btn-editor-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- QUILL EDITOR CUSTOMIZATION --- */
+.doc-section-block.is-editing {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-left: -20px; /* Slight pull out to emphasize active state */
+  margin-right: -20px;
+}
+
+.quill-wrapper {
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.premium-quill .ql-toolbar.ql-snow {
+  border: 1px solid #cbd5e1;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  background-color: #f1f5f9;
+  font-family: inherit;
+}
+
+.premium-quill .ql-container.ql-snow {
+  border: 1px solid #cbd5e1;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-top: none;
+  min-height: 250px;
+  font-size: 0.95rem;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #334155;
+  background-color: white;
+}
+
+.premium-quill .ql-editor {
+  min-height: 250px;
+  line-height: 1.8;
+}
+
+/* Subtle fade in for editor */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

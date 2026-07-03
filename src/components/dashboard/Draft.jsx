@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import axios from "../../store/axios";
 import {
   FileText,
   Copy,
@@ -20,11 +19,15 @@ import {
   Lock,
   Sparkles,
   CheckCircle2,
+  Check,
+  X,
 } from "lucide-react";
 
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
+// 1. UI Loaders (Controlled by Sockets)
 import {
-  fetchDraft,
-  reGenerateDraft,
   setIsBasicProvisionalGenerating,
   setIsBroadProvisionalGenerating,
   setIsTechnicalProvisionalGenerating,
@@ -33,11 +36,20 @@ import {
   setIsTechnicalNonProvisionalGenerating,
 } from "../../store/slices/patentSlice";
 
+// 2. RTK Query Hooks
+import {
+  useGetDraftByIdQuery,
+  useRegenerateDraftMutation,
+  useUpdateSectionMutation,
+} from "../../store/slices/patentApi";
+
 import Sidebar from "./Sidebar";
 import USPTOFormGenerator from "./USPTOFormGenerator";
 import NdaGenerator from "./NdaGenerator";
 import LicenseeGenerator from "./LicenseeGenerator";
 import DiagramsGenerator from "./DiagramsGenerator";
+import SearchGenerator from "./SearchGenerator";
+import DeepSearchGenerator from "./DeepSearchGenerator";
 import "../../styles/dashboard/Draft.css";
 
 const TABS = [
@@ -120,9 +132,19 @@ const Draft = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // --- RTK QUERY AUTOMAGIC ---
   const {
-    currentDraft,
-    isFetching,
+    data: fetchRes,
+    isLoading,
+    refetch,
+  } = useGetDraftByIdQuery(id, { skip: !id });
+  const patent = fetchRes?.data || fetchRes;
+  const [regenerateDraftMutation] = useRegenerateDraftMutation();
+  const [updateSection, { isLoading: isUpdating }] = useUpdateSectionMutation();
+
+  // --- REDUX STATE (For Socket Loaders) ---
+  const {
     isBasicProvisionalGenerating,
     isBroadProvisionalGenerating,
     isTechnicalProvisionalGenerating,
@@ -131,19 +153,52 @@ const Draft = () => {
     isTechnicalNonProvisionalGenerating,
   } = useSelector((state) => state.patent);
 
-  const { user } = useSelector((state) => state.auth);
-
   const [activeTab, setActiveTab] = useState("draft");
   const [activeVariant, setActiveVariant] = useState("basic");
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchDraft(id));
+  const [editingSection, setEditingSection] = useState(null);
+  const [editContent, setEditContent] = useState("");
+
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["clean"],
+    ],
+  };
+
+  const handleEditClick = (sectionId, currentContent) => {
+    setEditingSection(sectionId);
+    setEditContent(currentContent || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSection(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = async (sectionId) => {
+    try {
+      const draftType = isCurrentlyNonProv ? "nonprovisional" : "provisional";
+      const type = `${activeVariant}_sections`;
+
+      await updateSection({
+        id,
+        sectionKey: sectionId,
+        content: editContent,
+        draftType,
+        type,
+      }).unwrap();
+
+      toast.success("Section updated successfully!");
+      setEditingSection(null);
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to update section.");
     }
-  }, [id, dispatch]);
+  };
 
-  if (isFetching || !currentDraft) {
+  if (isLoading || !patent) {
     return (
       <div className="dashboard-layout-wrapper">
         <Sidebar />
@@ -153,8 +208,6 @@ const Draft = () => {
       </div>
     );
   }
-
-  const patent = currentDraft;
 
   // Tab and Addon Logic
   const activeTabConfig = TABS.find((t) => t.id === activeTab);
@@ -199,7 +252,7 @@ const Draft = () => {
     const draftType = isCurrentlyNonProv ? "nonprovisional" : "provisional";
     const type = `${activeVariant}_sections`;
 
-    // Dispatch loaders immediately
+    // Dispatch loaders immediately for Socket UI
     if (draftType === "provisional") {
       if (activeVariant === "basic")
         dispatch(setIsBasicProvisionalGenerating(true));
@@ -217,14 +270,17 @@ const Draft = () => {
     }
 
     try {
-      const res = await dispatch(
-        reGenerateDraft({ id, draftType, type }),
-      ).unwrap();
+      // Using RTK Query Mutation!
+      const res = await regenerateDraftMutation({
+        id,
+        draftType,
+        type,
+      }).unwrap();
       if (res.success) {
         toast.success(`Regenerating ${activeVariant} draft. Please wait...`);
       }
     } catch (error) {
-      toast.error("Failed to start regeneration");
+      toast.error(error?.data?.message || "Failed to start regeneration");
     }
   };
 
@@ -246,6 +302,8 @@ const Draft = () => {
   const isNdaView = isUnlocked && activeTab === "nda";
   const isLicenseeView = isUnlocked && activeTab === "licensees";
   const isDiagramsView = isUnlocked && activeTab === "diagrams";
+  const isSearchView = activeTab === "search";
+  const isDeepSearchView = activeTab === "deep-search";
 
   return (
     <div className="dashboard-layout-wrapper">
@@ -364,21 +422,62 @@ const Draft = () => {
                 </div>
 
                 <div className="document-content-area">
-                  {/* --- STATUS HANDLING: COMPLETED vs PROCESSING vs OTHER (Regenerate) --- */}
                   {activeStatus === "completed" ? (
                     /* RENDER ACTUAL SECTIONS WHEN COMPLETED */
                     activeSections.map((sec) => {
                       const content = getSectionContent(sec.id);
+                      const isEditingThis = editingSection === sec.id;
 
                       return (
                         <div
                           id={`sec-${sec.id}`}
-                          className="doc-section-block"
+                          className={`doc-section-block ${isEditingThis ? "is-editing" : ""}`}
                           key={sec.id}
                         >
-                          <h3 className="doc-sec-title">{sec.label}</h3>
+                          <div className="doc-sec-header">
+                            <h3 className="doc-sec-title">{sec.label}</h3>
 
-                          {content ? (
+                            {/* Editor Actions */}
+                            {isEditingThis ? (
+                              <div className="doc-sec-actions">
+                                <button
+                                  className="btn-editor-cancel"
+                                  onClick={handleCancelEdit}
+                                  disabled={isUpdating}
+                                >
+                                  <X size={16} /> Cancel
+                                </button>
+                                <button
+                                  className="btn-editor-save"
+                                  onClick={() => handleSaveEdit(sec.id)}
+                                  disabled={isUpdating}
+                                >
+                                  <Check size={16} />{" "}
+                                  {isUpdating ? "Saving..." : "Save"}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                className="btn-editor-edit"
+                                onClick={() => handleEditClick(sec.id, content)}
+                              >
+                                <Edit3 size={15} /> Edit
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Content or Editor */}
+                          {isEditingThis ? (
+                            <div className="quill-wrapper animate-fade-in">
+                              <ReactQuill
+                                theme="snow"
+                                value={editContent}
+                                onChange={setEditContent}
+                                modules={quillModules}
+                                className="premium-quill"
+                              />
+                            </div>
+                          ) : content ? (
                             <div
                               className="doc-sec-text"
                               dangerouslySetInnerHTML={{ __html: content }}
@@ -423,7 +522,6 @@ const Draft = () => {
                       </h3>
                     </div>
                   ) : (
-                    /* CATCH-ALL FOR DRAFT, ERROR, OR ANY OTHER STATUS */
                     <div
                       className="regenerate-fallback-box"
                       style={{ textAlign: "center", padding: "60px 20px" }}
@@ -485,10 +583,8 @@ const Draft = () => {
             className="workspace-scroll-container custom-scrollbar"
             style={{ padding: "0 24px" }}
           >
-            <USPTOFormGenerator
-              patentData={patent}
-              setPatentData={() => dispatch(fetchDraft(id))}
-            />
+            {/* Passing RTK refetch down so forms can refresh state instantly */}
+            <USPTOFormGenerator patentData={patent} setPatentData={refetch} />
           </div>
         )}
 
@@ -498,10 +594,7 @@ const Draft = () => {
             className="workspace-scroll-container custom-scrollbar"
             style={{ padding: "0 24px" }}
           >
-            <NdaGenerator
-              patentData={patent}
-              setPatentData={() => dispatch(fetchDraft(id))}
-            />
+            <NdaGenerator patentData={patent} setPatentData={refetch} />
           </div>
         )}
 
@@ -522,6 +615,32 @@ const Draft = () => {
             style={{ padding: "0 24px" }}
           >
             <DiagramsGenerator patentData={patent} />
+          </div>
+        )}
+
+        {/* --- 3G. SEARCH VIEW --- */}
+        {isSearchView && (
+          <div
+            className="workspace-scroll-container custom-scrollbar"
+            style={{ padding: "0 24px" }}
+          >
+            <SearchGenerator
+              patentData={patent}
+              isUnlocked={patent.addons?.searchStatus === true}
+            />
+          </div>
+        )}
+
+        {/* --- 3H. DEEP SEARCH VIEW --- */}
+        {isDeepSearchView && (
+          <div
+            className="workspace-scroll-container custom-scrollbar"
+            style={{ padding: "0 24px" }}
+          >
+            <DeepSearchGenerator
+              patentData={patent}
+              isUnlocked={patent.addons?.deepSearchStatus === true}
+            />
           </div>
         )}
       </main>

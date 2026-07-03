@@ -3,7 +3,10 @@ import { useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { setIsGenerating, fetchDraft } from "./patentSlice";
+
+// Removed fetchDraft from here, we only need setIsGenerating
+import { setIsGenerating } from "./patentSlice";
+import { patentApi } from "./patentApi";
 import {
   getPendingDrafts,
   removePendingDraft,
@@ -42,7 +45,11 @@ export const usePatentSocket = (roomId) => {
         const drafts = getPendingDrafts();
         removePendingDraft(data.draftId);
 
-        dispatch(fetchDraft(roomId));
+        // Instead of fetching manually, we invalidate the cache.
+        dispatch(
+          patentApi.util.invalidateTags([{ type: "Draft", id: roomId }]),
+        );
+
         dispatch(setIsGenerating(false));
 
         // If it was stored locally, user is owner, go to dashboard. Else go to preview.
