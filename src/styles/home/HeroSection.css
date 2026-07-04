@@ -137,10 +137,8 @@
 .widget-body {
   display: flex;
   flex-direction: column;
-  background-color: #c3a9ff1f;
+  background-color: #fff;
   padding: 24px 20px 20px 24px;
-  border: 1px solid #c1b2b2;
-  border-radius: 0 0 12px 12px;
 }
 
 .invention-input {
@@ -168,7 +166,7 @@
 }
 
 .btn-generate {
-  background-color: #09090b;
+  background-color: #8b5cf6;
   color: #ffffff;
   border: none;
   border-radius: 6px;

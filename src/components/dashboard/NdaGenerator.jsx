@@ -21,7 +21,7 @@ const FileIcon = () => (
     height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#2563eb"
+    stroke="#8b5cf6"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -55,7 +55,7 @@ const CalendarIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#3b82f6"
+    stroke="#8b5cf6"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -72,7 +72,7 @@ const UserIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#3b82f6"
+    stroke="#8b5cf6"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -87,7 +87,7 @@ const PenIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#3b82f6"
+    stroke="#8b5cf6"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -344,7 +344,7 @@ const NdaGenerator = ({ patentData, setPatentData }) => {
           name: user?.name || "",
           email: user?.email || patentData.userEmail,
         },
-        theme: { color: "#2563eb" },
+        theme: { color: "#8b5cf6" },
         modal: { ondismiss: () => setIsProcessingPayment(false) },
       };
 

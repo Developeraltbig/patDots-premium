@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
+  color: #8b5cf6;
 }
 
 .nda-icon-box svg {
@@ -69,8 +69,8 @@
 
 .btn-save-nda {
   background: white;
-  border: 1px solid #2563eb;
-  color: #2563eb;
+  border: 1px solid #8b5cf6;
+  color: #8b5cf6;
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 600;
@@ -86,7 +86,7 @@
 }
 
 .btn-download-nda {
-  background-color: #2563eb;
+  background-color: #8b5cf6;
   color: white;
   border: none;
   padding: 12px 30px;
@@ -196,7 +196,7 @@
 }
 
 .form-control-nda:focus {
-  border-color: #2563eb;
+  border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -242,7 +242,7 @@
   left: 0;
   width: 100%;
   background: white;
-  border: 1px solid #2563eb;
+  border: 1px solid #8b5cf6;
   border-radius: 6px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   z-index: 100;
@@ -264,14 +264,14 @@
 
 .lang-item-nda:hover {
   background-color: #eff6ff;
-  color: #2563eb;
+  color: #8b5cf6;
 }
 
 /* --- UPDATED DROPDOWN STYLES --- */
 .lang-code-abbr {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #3b82f6;
+  color: #8b5cf6;
   width: 35px;
   display: inline-block;
 }
@@ -283,7 +283,7 @@
 
 .add-more-langs {
   border-top: 1px solid #e2e8f0;
-  color: #2563eb;
+  color: #8b5cf6;
   padding-top: 16px;
   margin-top: 4px;
 }
@@ -295,14 +295,14 @@
 .add-more-icon {
   font-size: 1.3rem;
   font-weight: 400;
-  color: #2563eb;
+  color: #8b5cf6;
   width: 25px;
   display: inline-block;
   text-align: center;
 }
 
 .add-more-text {
-  color: #2563eb;
+  color: #8b5cf6;
   font-weight: 500;
 }
 
@@ -413,10 +413,10 @@
 }
 
 .nda-lang-pill.selected {
-  border-color: #2563eb;
-  color: #2563eb;
+  border-color: #8b5cf6;
+  color: #8b5cf6;
   background-color: #eff6ff;
-  box-shadow: 0 0 0 1px #2563eb; /* Stronger blue outline as per screenshot */
+  box-shadow: 0 0 0 1px #8b5cf6; /* Stronger blue outline as per screenshot */
 }
 
 .nda-lang-modal-footer {
@@ -472,7 +472,7 @@
 
 .btn-purchase-modal {
   padding: 10px 24px;
-  background: #2563eb;
+  background: #8b5cf6;
   color: white;
   border: none;
   border-radius: 6px;

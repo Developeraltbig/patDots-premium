@@ -38,7 +38,7 @@
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.05),
     0 8px 10px -6px rgba(0, 0, 0, 0.01);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d0d6dd;
 }
 
 .dashboard-widget-variant .widget-header {
@@ -52,7 +52,7 @@
 }
 
 .dashboard-widget-variant .btn-generate {
-  background: #8437EC;
+  background: #8437ec;
   color: white;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }

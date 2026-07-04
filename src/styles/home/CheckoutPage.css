@@ -517,7 +517,7 @@
 .btn-change-email-link {
   background: none;
   border: none;
-  color: #3b82f6; /* Blue link */
+  color: #8b5cf6; /* Blue link */
   text-decoration: underline;
   font-size: 0.9rem;
   font-weight: 500;
@@ -526,7 +526,7 @@
 }
 
 .btn-change-email-link:hover {
-  color: #2563eb;
+  color: #8b5cf6;
 }
 
 /* --- LOCKED PLACEHOLDER (Matches Screenshot) --- */

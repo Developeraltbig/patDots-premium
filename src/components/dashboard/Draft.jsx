@@ -454,12 +454,6 @@ const Draft = () => {
                     >
                       <Download size={14} /> Download
                     </button>
-                    <button className="doc-action-btn">
-                      <Copy size={14} /> Copy
-                    </button>
-                    <button className="doc-action-btn">
-                      <Edit3 size={14} /> Edit
-                    </button>
                   </div>
                 </div>
 
