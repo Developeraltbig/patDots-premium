@@ -344,8 +344,8 @@ const Draft = () => {
   const isNdaView = isUnlocked && activeTab === "nda";
   const isLicenseeView = isUnlocked && activeTab === "licensees";
   const isDiagramsView = isUnlocked && activeTab === "diagrams";
-  const isSearchView = activeTab === "search";
-  const isDeepSearchView = activeTab === "deep-search";
+  const isSearchView = isUnlocked && activeTab === "search";
+  const isDeepSearchView = isUnlocked && activeTab === "deep-search";
 
   return (
     <div className="dashboard-layout-wrapper">

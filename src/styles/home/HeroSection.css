@@ -135,10 +135,12 @@
 
 /* Widget Body (White Area) */
 .widget-body {
-  background-color: #ffffff;
-  padding: 24px 20px 20px 24px;
   display: flex;
   flex-direction: column;
+  background-color: #c3a9ff1f;
+  padding: 24px 20px 20px 24px;
+  border: 1px solid #c1b2b2;
+  border-radius: 0 0 12px 12px;
 }
 
 .invention-input {
@@ -186,7 +188,6 @@
 }
 
 .btn-generate:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
 }
 

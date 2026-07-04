@@ -4,7 +4,6 @@ import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-// Removed fetchDraft from here, we only need setIsGenerating
 import { setIsGenerating } from "./patentSlice";
 import { patentApi } from "./patentApi";
 import {
@@ -43,20 +42,21 @@ export const usePatentSocket = (roomId) => {
 
       if (String(data.draftId) === String(roomId)) {
         const drafts = getPendingDrafts();
-        removePendingDraft(data.draftId);
 
-        // Instead of fetching manually, we invalidate the cache.
         dispatch(
           patentApi.util.invalidateTags([{ type: "Draft", id: roomId }]),
         );
 
         dispatch(setIsGenerating(false));
 
-        // If it was stored locally, user is owner, go to dashboard. Else go to preview.
+        // FIX: If it is a newly generated draft, it will be in pendingDrafts.
+        // New drafts MUST go to the preview page to trigger the paywall checkout.
+        // If it's NOT in pending drafts, it's a regeneration from inside the dashboard.
         if (drafts[data.draftId]) {
-          navigate(`/draft/${roomId}`);
-        } else {
+          removePendingDraft(data.draftId);
           navigate(`/preview/${roomId}`);
+        } else {
+          navigate(`/draft/${roomId}`);
         }
       }
     };
@@ -67,6 +67,7 @@ export const usePatentSocket = (roomId) => {
 
     socket.on("generation-finished", handleGenerationFinished);
     socket.on("non-provisional-generation-finished", handleGenerationFinished);
+    socket.on("normal-search-generation-finished", handleGenerationFinished);
 
     return () => {
       socket.off("generation-finished", handleGenerationFinished);
@@ -74,6 +75,7 @@ export const usePatentSocket = (roomId) => {
         "non-provisional-generation-finished",
         handleGenerationFinished,
       );
+      socket.off("normal-search-generation-finished", handleGenerationFinished);
     };
   }, [roomId, dispatch, navigate]);
 };

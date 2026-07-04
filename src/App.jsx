@@ -9,14 +9,13 @@ import ProtectedLayout from "./layouts/ProtectedLayout";
 import CheckoutPage from "./pages/CheckoutPage";
 import Preview from "./pages/PreviewPage";
 
-// THE FIX: Import Draft instead of Dashboard
-import Draft from "./components/dashboard/Draft";
-
 // Lazy Loaded Pages
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
+const Draft = lazy(() => import("./components/dashboard/Draft"));
+const MyDrafts = lazy(() => import("./pages/MyDrafts"));
+const NewDraft = lazy(() => import("./pages/NewDraft"));
 
-// Premium Fallback Loader
 const PageLoader = () => (
   <div className="global-loader">
     <div className="spinner"></div>
@@ -38,8 +37,9 @@ function App() {
 
           {/* PROTECTED ROUTES */}
           <Route element={<ProtectedLayout />}>
-            {/* THE FIX: Use Draft component here */}
             <Route path="/draft/:id" element={<Draft />} />
+            <Route path="/new-draft" element={<NewDraft />} />
+            <Route path="/my-drafts" element={<MyDrafts />} />
           </Route>
 
           {/* CATCH-ALL REDIRECT */}
