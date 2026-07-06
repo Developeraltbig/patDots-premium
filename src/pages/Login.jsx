@@ -3,14 +3,13 @@ import { useDispatch } from "react-redux";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowLeft, Mail, Lock, X } from "lucide-react";
+import L1 from "../assets/images/Patdots-logo-dark-bg.png";
 
-// 1. Import RTK Query Hooks (Replacing old Thunks)
+// RTK Query Hooks & Redux Actions
 import {
   useLoginUserMutation,
   useForgotPasswordMutation,
 } from "../store/slices/authApi";
-
-// 2. Import synchronous action to update Redux UI state after successful login
 import { setAuthUser } from "../store/slices/authSlice";
 
 import "../styles/Login.css";
@@ -20,19 +19,15 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if there was a page the user was trying to visit before being redirected to login
   const from = location.state?.from?.pathname || "/my-drafts";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // --- RTK QUERY MUTATIONS ---
-  // RTK Query provides the loading states automatically!
   const [loginUser, { isLoading: isLoggingIn }] = useLoginUserMutation();
   const [forgotPassword, { isLoading: isForgotLoading }] =
     useForgotPasswordMutation();
 
-  // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
@@ -41,14 +36,10 @@ const Login = () => {
     if (!email || !password) return toast.error("Please fill in all fields");
 
     try {
-      // .unwrap() throws an error if the backend returns a 4xx/5xx status
       const res = await loginUser({ email, password }).unwrap();
-
-      // Update Redux auth state with the user object returned from backend
       if (res.success && res.user) {
         dispatch(setAuthUser(res.user));
       }
-
       toast.success("Welcome back!");
       navigate(from, { replace: true });
     } catch (err) {
@@ -66,7 +57,6 @@ const Login = () => {
 
     try {
       await forgotPassword(forgotEmail).unwrap();
-
       toast.success("If an account exists, a reset link has been sent.");
       setShowForgotModal(false);
       setForgotEmail("");
@@ -81,6 +71,7 @@ const Login = () => {
 
   return (
     <div className="login-page-wrapper">
+      {/* LEFT SIDE: Brand */}
       <div className="login-brand-col">
         <div className="brand-glow"></div>
 
@@ -110,7 +101,8 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="input-group">
+            {/* RENAMED TO login-input-group */}
+            <div className="login-input-group">
               <label htmlFor="email">Email Address</label>
               <div className="input-wrapper">
                 <Mail size={18} className="input-icon" />
@@ -125,7 +117,7 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="input-group">
+            <div className="login-input-group">
               <div className="password-label-row">
                 <label htmlFor="password">Password</label>
                 <button
@@ -141,7 +133,7 @@ const Login = () => {
                 <input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoggingIn}
@@ -180,14 +172,12 @@ const Login = () => {
                 <X size={20} />
               </button>
             </div>
-
             <p className="modal-desc">
               Enter your email address and we'll send you a link to reset your
               password.
             </p>
-
             <form onSubmit={handleForgotPassword}>
-              <div className="input-group">
+              <div className="login-input-group">
                 <div className="input-wrapper">
                   <Mail size={18} className="input-icon" />
                   <input
@@ -199,7 +189,6 @@ const Login = () => {
                   />
                 </div>
               </div>
-
               <button
                 type="submit"
                 disabled={isForgotLoading || !forgotEmail}

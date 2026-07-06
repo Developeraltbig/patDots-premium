@@ -271,19 +271,15 @@ const DiagramsGenerator = ({ patentData }) => {
   // Activate socket listener for updates
   usePatentSocket(id);
 
-  const {
-    currentDraft,
-    isFetchingFlowDiagramReport,
-    isFetchingBlockDiagramReport,
-  } = useSelector((state) => state.patent);
+  const { isFetchingFlowDiagramReport, isFetchingBlockDiagramReport } =
+    useSelector((state) => state.patent);
 
   const [activeType, setActiveType] = useState("block");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Derive status/data from Redux State
   const diagrams = {
-    block: currentDraft?.diagrams?.blockDiagram || null,
-    flow: currentDraft?.diagrams?.flowChart || null,
+    block: patentData?.diagrams?.blockDiagram || null,
+    flow: patentData?.diagrams?.flowChart || null,
   };
 
   const isGeneratingBlock =

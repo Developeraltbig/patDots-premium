@@ -132,9 +132,8 @@
 /* Form Grid */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
-  margin-bottom: 20px;
 }
 
 .form-full {
@@ -225,12 +224,26 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
+  .nda-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
-
-  .form-group[style*="maxWidth"] {
-    max-width: 100% !important;
+  .nda-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .nda-card {
+    padding: 16px;
+  }
+  .nda-lang-modal {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }
 

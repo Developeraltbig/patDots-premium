@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import ReactQuill from "react-quill-new";
+import plantumlEncoder from "plantuml-encoder";
 import "react-quill-new/dist/quill.snow.css";
 
 // 1. UI Loaders (Controlled by Sockets)
@@ -127,6 +128,14 @@ const NON_PROV_SECTIONS = [
   },
   { id: "detailed_descriptions", label: "Detailed Description", num: "07" },
   { id: "claims", label: "Claims", num: "08" },
+  { id: "embodiments", label: "Alternative Embodiments", num: "09" },
+  {
+    id: "industrial_applicability",
+    label: "Industrial Applicability",
+    num: "10",
+  },
+  { id: "block_diagram", label: "Block Diagram", num: "11" },
+  { id: "flow_chart", label: "Flow Chart", num: "12" },
 ];
 
 const Draft = () => {
@@ -346,6 +355,19 @@ const Draft = () => {
   const isDiagramsView = isUnlocked && activeTab === "diagrams";
   const isSearchView = isUnlocked && activeTab === "search";
   const isDeepSearchView = isUnlocked && activeTab === "deep-search";
+  const getImageUrl = (code) => {
+    if (!code) return null;
+    try {
+      const cleanCode = code
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .trim();
+      const encoded = plantumlEncoder.encode(cleanCode);
+      return `https://www.plantuml.com/plantuml/svg/${encoded}`;
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <div className="dashboard-layout-wrapper">
@@ -464,6 +486,11 @@ const Draft = () => {
                       const content = getSectionContent(sec.id);
                       const isEditingThis = editingSection === sec.id;
 
+                      // Identify if this section is a PlantUML diagram
+                      const isDiagram =
+                        sec.id === "flow_chart" || sec.id === "block_diagram";
+                      const imageUrl = isDiagram ? getImageUrl(content) : null;
+
                       return (
                         <div
                           id={`sec-${sec.id}`}
@@ -473,37 +500,40 @@ const Draft = () => {
                           <div className="doc-sec-header">
                             <h3 className="doc-sec-title">{sec.label}</h3>
 
-                            {/* Editor Actions */}
-                            {isEditingThis ? (
-                              <div className="doc-sec-actions">
+                            {/* Editor Actions - Hidden for Diagrams to prevent code corruption */}
+                            {!isDiagram &&
+                              (isEditingThis ? (
+                                <div className="doc-sec-actions">
+                                  <button
+                                    className="btn-editor-cancel"
+                                    onClick={handleCancelEdit}
+                                    disabled={isUpdating}
+                                  >
+                                    <X size={16} /> Cancel
+                                  </button>
+                                  <button
+                                    className="btn-editor-save"
+                                    onClick={() => handleSaveEdit(sec.id)}
+                                    disabled={isUpdating}
+                                  >
+                                    <Check size={16} />{" "}
+                                    {isUpdating ? "Saving..." : "Save"}
+                                  </button>
+                                </div>
+                              ) : (
                                 <button
-                                  className="btn-editor-cancel"
-                                  onClick={handleCancelEdit}
-                                  disabled={isUpdating}
+                                  className="btn-editor-edit"
+                                  onClick={() =>
+                                    handleEditClick(sec.id, content)
+                                  }
                                 >
-                                  <X size={16} /> Cancel
+                                  <Edit3 size={15} /> Edit
                                 </button>
-                                <button
-                                  className="btn-editor-save"
-                                  onClick={() => handleSaveEdit(sec.id)}
-                                  disabled={isUpdating}
-                                >
-                                  <Check size={16} />{" "}
-                                  {isUpdating ? "Saving..." : "Save"}
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                className="btn-editor-edit"
-                                onClick={() => handleEditClick(sec.id, content)}
-                              >
-                                <Edit3 size={15} /> Edit
-                              </button>
-                            )}
+                              ))}
                           </div>
 
                           {/* Content or Editor */}
-                          {isEditingThis ? (
+                          {isEditingThis && !isDiagram ? (
                             <div className="quill-wrapper animate-fade-in">
                               <ReactQuill
                                 theme="snow"
@@ -513,6 +543,28 @@ const Draft = () => {
                                 className="premium-quill"
                               />
                             </div>
+                          ) : isDiagram ? (
+                            imageUrl ? (
+                              <div
+                                style={{
+                                  textAlign: "center",
+                                  padding: "30px",
+                                  backgroundColor: "#f8fafc",
+                                  border: "1px dashed #cbd5e1",
+                                  borderRadius: "8px",
+                                }}
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt={sec.label}
+                                  style={{ maxWidth: "100%" }}
+                                />
+                              </div>
+                            ) : (
+                              <p className="doc-sec-placeholder">
+                                Diagram data is unavailable or generating...
+                              </p>
+                            )
                           ) : content ? (
                             <div
                               className="doc-sec-text"

@@ -82,8 +82,7 @@
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 2px 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -136,18 +135,38 @@
 }
 
 .meta-grid {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  font-size: 0.9rem;
-  color: #475569;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .search-preview-alert {
+    padding: 16px;
+  }
+  .patent-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .patent-body {
+    padding: 16px;
+  }
+  .locked-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .locked-skeleton-line {
+    width: 100%;
+    margin: 0;
+  }
 }
 
 /* Matrix Button & Table */
@@ -174,17 +193,20 @@
 }
 
 .table-wrapper {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   margin-bottom: 16px;
   margin-top: 16px;
+  display: block;
 }
 
 .analyzer-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
-  font-size: 0.9rem;
 }
 
 .analyzer-table th {

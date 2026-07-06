@@ -1,10 +1,16 @@
+// File: client/src/store/slices/usePatentSocket.js
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-import { setIsGenerating } from "./patentSlice";
+import {
+  setIsGenerating,
+  setIsFetchLicenseReport,
+  setIsFetchBlockDiagramReport,
+  setIsFetchFlowDiagramReport,
+} from "./patentSlice";
 import { patentApi } from "./patentApi";
 import {
   getPendingDrafts,
@@ -42,18 +48,15 @@ export const usePatentSocket = (roomId) => {
 
       if (String(data.draftId) === String(roomId)) {
         const drafts = getPendingDrafts();
+        removePendingDraft(data.draftId);
 
+        // Invalidate the cache to fetch the newly generated draft
         dispatch(
           patentApi.util.invalidateTags([{ type: "Draft", id: roomId }]),
         );
-
         dispatch(setIsGenerating(false));
 
-        // FIX: If it is a newly generated draft, it will be in pendingDrafts.
-        // New drafts MUST go to the preview page to trigger the paywall checkout.
-        // If it's NOT in pending drafts, it's a regeneration from inside the dashboard.
         if (drafts[data.draftId]) {
-          removePendingDraft(data.draftId);
           navigate(`/preview/${roomId}`);
         } else {
           navigate(`/draft/${roomId}`);
@@ -61,13 +64,38 @@ export const usePatentSocket = (roomId) => {
       }
     };
 
+    // --- NEW: Handle Add-on Completions ---
+    const handleAddonFinished = (data) => {
+      if (data?.error) {
+        toast.error(data.error);
+      }
+
+      if (roomId && String(data.draftId) === String(roomId)) {
+        // Invalidate Cache so Diagram/Licensee tab instantly updates with new data
+        dispatch(
+          patentApi.util.invalidateTags([{ type: "Draft", id: roomId }]),
+        );
+
+        // Turn off all specific add-on loading states
+        dispatch(setIsFetchLicenseReport(false));
+        dispatch(setIsFetchBlockDiagramReport(false));
+        dispatch(setIsFetchFlowDiagramReport(false));
+      }
+    };
+
     if (roomId) {
       socket.emit("join-patent-room", roomId);
     }
 
+    // Main Drafts
     socket.on("generation-finished", handleGenerationFinished);
     socket.on("non-provisional-generation-finished", handleGenerationFinished);
     socket.on("normal-search-generation-finished", handleGenerationFinished);
+
+    // Add-ons
+    socket.on("diagram-generation-finished", handleAddonFinished);
+    socket.on("license-generation-finished", handleAddonFinished);
+    socket.on("deep-search-generation-finished", handleAddonFinished);
 
     return () => {
       socket.off("generation-finished", handleGenerationFinished);
@@ -76,6 +104,9 @@ export const usePatentSocket = (roomId) => {
         handleGenerationFinished,
       );
       socket.off("normal-search-generation-finished", handleGenerationFinished);
+      socket.off("diagram-generation-finished", handleAddonFinished);
+      socket.off("license-generation-finished", handleAddonFinished);
+      socket.off("deep-search-generation-finished", handleAddonFinished);
     };
   }, [roomId, dispatch, navigate]);
 };

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-// RTK Query Hooks 
+// RTK Query Hooks
 import {
   useDownloadLicenseeReportMutation,
   useGenerateLicenseesMutation,
@@ -56,15 +56,12 @@ const LicenseeGenerator = ({ patentData }) => {
   const [generateLicensees] = useGenerateLicenseesMutation();
 
   // Redux state
-  const { currentDraft, isFetchingLicenseReport } = useSelector(
-    (state) => state.patent,
-  );
+  const { isFetchingLicenseReport } = useSelector((state) => state.patent);
 
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState(0);
 
-  // The source of truth is always Redux
-  const report = currentDraft?.licenseeReport || null;
+  const report = patentData?.licenseeReport || null;
 
   useEffect(() => {
     if (!id || !patentData) return;

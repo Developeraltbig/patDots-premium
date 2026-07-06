@@ -5,33 +5,22 @@
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #f8fafc;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* --- LEFT SIDE: BRAND --- */
 .login-brand-col {
   flex: 1;
-  background-color: #06070a; /* Deep dark space theme */
+  background-color: #06070a; /* Deep Brand Space Theme */
   color: white;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 40px 60px;
+  padding: 60px;
   position: relative;
   overflow: hidden;
-}
-
-/* Noise Texture Overlay */
-.login-brand-col::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.15;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  z-index: 0;
 }
 
 .brand-glow {
@@ -39,8 +28,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
+  width: 700px;
+  height: 700px;
   background: radial-gradient(
     circle,
     rgba(139, 92, 246, 0.2) 0%,
@@ -50,47 +39,20 @@
   pointer-events: none;
 }
 
-.brand-header,
 .brand-content,
 .brand-footer {
   position: relative;
   z-index: 2;
 }
 
-.brand-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
+.mb-6 {
+  margin-bottom: 24px;
 }
 
-.brand-logo-wrapper {
-  width: 40px;
-  height: 40px;
-  background-color: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-svg {
-  width: 26px;
-  height: 26px;
-}
-
-.brand-text h2 {
-  color: white;
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.brand-text span {
-  color: #a491db;
-  font-size: 0.75rem;
-  font-weight: 500;
+.brand-logo-img {
+  height: 48px;
+  width: auto;
+  display: block;
 }
 
 .brand-content {
@@ -130,12 +92,14 @@
 
 .form-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px; /* Slightly wider for a premium feel */
   background: white;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 48px 40px; /* Enhanced breathing room */
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.01);
   animation: slideUp 0.5s ease-out;
 }
 
@@ -147,40 +111,47 @@
 .form-header h2 {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #18181b;
+  color: #0f172a;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.02em;
 }
 
 .form-header p {
-  color: #71717a;
+  color: #64748b;
   font-size: 0.95rem;
   margin: 0;
 }
 
-/* Inputs */
+/* --- NEW ISOLATED INPUT GROUP --- */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem; /* Increased gap between fields */
 }
 
-.input-group {
+.login-input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  width: 100%;
 }
 
-.input-group label {
+.login-input-group label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #3f3f46;
+  color: #334155;
+  margin-bottom: 8px; /* Restored proper spacing below label */
 }
 
 .password-label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  margin-bottom: 8px; /* Crucial fix for separation */
+}
+
+.password-label-row label {
+  margin-bottom: 0; /* Prevents double margin inside the flex row */
 }
 
 .btn-forgot-password {
@@ -191,6 +162,7 @@
   font-weight: 500;
   cursor: pointer;
   padding: 0;
+  transition: color 0.2s;
 }
 
 .btn-forgot-password:hover {
@@ -198,25 +170,28 @@
   color: #7c3aed;
 }
 
+/* Input Fields */
 .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .input-icon {
   position: absolute;
   left: 14px;
-  color: #a1a1aa;
+  color: #94a3b8;
+  z-index: 10;
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 12px 16px 12px 40px; /* Space for icon */
+  padding: 12px 16px 12px 42px; /* Perfect spacing for icon */
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
-  color: #18181b;
+  color: #0f172a;
   outline: none;
   transition: all 0.2s ease;
   background-color: #ffffff;
@@ -224,31 +199,42 @@
 
 .input-wrapper input:focus {
   border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .input-wrapper input:disabled {
-  background-color: #f4f4f5;
-  color: #a1a1aa;
+  background-color: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* 🚀 CHROME AUTOFILL KILLER 🚀 */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus,
+.input-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Submit Button */
 .btn-login-submit {
   width: 100%;
-  background-color: #090a0f; /* Deep dark navy */
+  background-color: #0f172a; /* Deep navy */
   color: white;
   border: none;
   padding: 14px;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 10px;
+  transition: all 0.2s ease;
+  margin-top: 8px;
 }
 
 .btn-login-submit:hover:not(:disabled) {
-  background-color: #27272a;
+  background-color: #1e293b;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 
 .btn-login-submit:disabled {
@@ -266,15 +252,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #71717a;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.95rem;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .back-link:hover {
-  color: #18181b;
+  color: #0f172a;
 }
 
 /* --- FORGOT PASSWORD MODAL --- */
@@ -284,7 +270,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(9, 10, 15, 0.7);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -297,8 +283,8 @@
   background: white;
   padding: 32px;
   border-radius: 12px;
-  width: 100%;
-  max-width: 400px;
+  width: 90%;
+  max-width: 420px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
@@ -312,14 +298,14 @@
 .modal-header-row h3 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #18181b;
+  color: #0f172a;
   margin: 0;
 }
 
 .btn-close {
   background: transparent;
   border: none;
-  color: #a1a1aa;
+  color: #94a3b8;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -327,12 +313,12 @@
 }
 
 .btn-close:hover {
-  background-color: #f4f4f5;
+  background-color: #f1f5f9;
   color: #ef4444;
 }
 
 .modal-desc {
-  color: #71717a;
+  color: #64748b;
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0 0 1.5rem 0;
@@ -363,33 +349,43 @@
   }
 }
 
-/* Responsive */
+/* --- RESPONSIVE BREAKPOINTS --- */
+@media (max-width: 1024px) {
+  .login-brand-col {
+    padding: 40px;
+  }
+  .brand-content h1 {
+    font-size: 2.8rem;
+  }
+}
+
 @media (max-width: 900px) {
   .login-page-wrapper {
     flex-direction: column;
   }
 
   .login-brand-col {
-    padding: 30px 20px;
-    min-height: 300px;
+    min-height: auto;
     flex: none;
+  }
+
+  /* Hide excessive text on mobile to save vertical space */
+  .brand-content p,
+  .brand-footer {
+    display: none;
   }
 
   .brand-content h1 {
     font-size: 2.2rem;
-  }
-
-  .brand-content p,
-  .brand-footer {
-    display: none; /* Keep it clean on mobile */
+    margin-bottom: 0;
   }
 
   .login-form-col {
-    padding: 30px 20px;
-    align-items: flex-start;
+    padding: 40px 20px;
+    align-items: flex-start; /* Prevents form from floating middle of screen on long devices */
   }
 
   .form-card {
-    padding: 30px 20px;
+    padding: 32px 24px;
   }
 }

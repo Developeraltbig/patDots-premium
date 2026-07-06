@@ -159,7 +159,9 @@
   color: #8b5cf6;
   font-size: 1.1rem;
   font-weight: 500;
-  width: 24px;
+  min-width: 28px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .outline-label {
@@ -270,16 +272,32 @@
 .doc-sec-text {
   color: #64748b;
   font-size: 0.95rem;
-  line-height: 1.8;
+  line-height: 1.7;
   text-align: start;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: pre-wrap;
+  white-space: normal;
   max-width: 100%;
 }
 
+.doc-sec-text ol,
+.doc-sec-text ul {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.doc-sec-text li {
+  margin-bottom: 0.75rem;
+  padding-left: 0.25rem;
+}
+
+.doc-sec-text li:last-child {
+  margin-bottom: 0;
+}
+
 .doc-sec-text p {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   max-width: 100%;
 }
 
@@ -433,7 +451,7 @@
 @media (max-width: 768px) {
   .dashboard-main,
   .dashboard-main-content {
-    padding: 90px 16px 24px 16px !important;
+    padding: 45px 5px 24px 5px !important;
   }
 
   .document-content-area {
@@ -696,7 +714,7 @@
 
 .btn-editor-edit:hover {
   background: #f8fafc;
-  color: #8b5cf6;
+  color: #2563eb;
   border-color: #cbd5e1;
 }
 

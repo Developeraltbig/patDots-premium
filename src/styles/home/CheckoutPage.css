@@ -14,7 +14,9 @@
 
 /* --- HEADER --- */
 .checkout-header {
-  margin-bottom: 3rem;
+  margin: 0 auto 2rem auto;
+  max-width: 650px;
+  text-align: left;
 }
 
 .checkout-title {
@@ -32,7 +34,16 @@
 
 /* --- GRID --- */
 .checkout-grid {
-  align-items: start;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .checkout-grid {
+    display: block;
+  }
 }
 
 .checkout-left-col {
@@ -46,8 +57,11 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  padding: 32px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
 }
 
 .card-heading {
@@ -416,18 +430,28 @@
 }
 
 @media (max-width: 768px) {
-  .checkout-grid {
-    grid-template-columns: 1fr;
-  }
   .checkout-main {
-    padding: 100px 1.5rem 4rem 1.5rem;
+    padding: 100px 16px 40px 16px;
+  }
+  .checkout-header {
+    margin-bottom: 1.5rem;
+  }
+  .checkout-card {
+    padding: 24px 16px;
+  }
+  .otp-action-row {
+    flex-direction: column;
+  }
+  .btn-verify-success {
+    width: 100%;
+  }
+  .payment-actions {
+    width: 100%;
   }
 }
 
-/* --- EMAIL VERIFICATION SPECIFICS (Matches Screenshot) --- */
-
 .email-field {
-  background-color: #f1f5f9; /* Soft blue-grey tint */
+  background-color: #f1f5f9;
   border: 1px solid #e2e8f0;
   color: #334155;
   font-size: 1.05rem;

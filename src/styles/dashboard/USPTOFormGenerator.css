@@ -41,7 +41,7 @@
 
 .fg-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -104,15 +104,33 @@
   background-color: #94a3b8;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .fg-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .fg-grid,
+  .fg-package-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
   .fg-field.span-2 {
     grid-column: span 1;
   }
   .fg-card {
-    padding: 20px;
+    padding: 20px 15px;
+  }
+  .fg-header-row {
+    flex-direction: column;
+  }
+  .fg-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .btn-generate-zip {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -128,8 +146,8 @@
 }
 
 .fg-shell {
-  /* max-width: 1120px; */
-  margin: 0 auto;
+  width: 100%;
+  min-width: 0;
 }
 .fg-header-row {
   display: flex;
