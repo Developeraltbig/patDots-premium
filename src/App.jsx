@@ -16,6 +16,8 @@ const Draft = lazy(() => import("./components/dashboard/Draft"));
 const MyDrafts = lazy(() => import("./pages/MyDrafts"));
 const NewDraft = lazy(() => import("./pages/NewDraft"));
 
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+
 const PageLoader = () => (
   <div className="global-loader">
     <div className="spinner"></div>
@@ -27,22 +29,21 @@ function App() {
     <>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* PUBLIC ROUTES */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/preview/:id" element={<Preview />} />
             <Route path="/checkout/:id" element={<CheckoutPage />} />
+
+            <Route path="/resetpassword/:token" element={<ResetPassword />} />
           </Route>
 
-          {/* PROTECTED ROUTES */}
           <Route element={<ProtectedLayout />}>
             <Route path="/draft/:id" element={<Draft />} />
             <Route path="/new-draft" element={<NewDraft />} />
             <Route path="/my-drafts" element={<MyDrafts />} />
           </Route>
 
-          {/* CATCH-ALL REDIRECT */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
