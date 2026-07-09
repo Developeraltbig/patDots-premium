@@ -1,4 +1,3 @@
-// File: client/src/store/slices/usePatentSocket.js
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { io } from "socket.io-client";
@@ -10,7 +9,14 @@ import {
   setIsFetchLicenseReport,
   setIsFetchBlockDiagramReport,
   setIsFetchFlowDiagramReport,
+  setIsBasicProvisionalGenerating,
+  setIsBroadProvisionalGenerating,
+  setIsTechnicalProvisionalGenerating,
+  setIsBasicNonProvisionalGenerating,
+  setIsBroadNonProvisionalGenerating,
+  setIsTechnicalNonProvisionalGenerating,
 } from "./patentSlice";
+
 import { patentApi } from "./patentApi";
 import {
   getPendingDrafts,
@@ -34,27 +40,33 @@ export const usePatentSocket = (roomId) => {
     if (!socket) return;
     if (!socket.connected) socket.connect();
 
+    // --- HANDLE ALL DRAFT GENERATIONS ---
     const handleGenerationFinished = (data) => {
+      // 1. Turn off ALL loading states immediately
+      dispatch(setIsGenerating(false));
+      dispatch(setIsBasicProvisionalGenerating(false));
+      dispatch(setIsBroadProvisionalGenerating(false));
+      dispatch(setIsTechnicalProvisionalGenerating(false));
+      dispatch(setIsBasicNonProvisionalGenerating(false));
+      dispatch(setIsBroadNonProvisionalGenerating(false));
+      dispatch(setIsTechnicalNonProvisionalGenerating(false));
+
+      // 2. Handle Errors
       if (data?.error) {
-        dispatch(setIsGenerating(false));
         toast.error(data.error);
         return;
       }
 
-      if (!roomId) {
-        dispatch(setIsGenerating(false));
-        return;
-      }
+      if (!roomId) return;
 
+      // 3. Handle Success
       if (String(data.draftId) === String(roomId)) {
         const drafts = getPendingDrafts();
         removePendingDraft(data.draftId);
 
-        // Invalidate the cache to fetch the newly generated draft
         dispatch(
           patentApi.util.invalidateTags([{ type: "Draft", id: roomId }]),
         );
-        dispatch(setIsGenerating(false));
 
         if (drafts[data.draftId]) {
           navigate(`/preview/${roomId}`);
@@ -64,7 +76,7 @@ export const usePatentSocket = (roomId) => {
       }
     };
 
-    // --- NEW: Handle Add-on Completions ---
+    // --- HANDLE ADD-ON COMPLETIONS ---
     const handleAddonFinished = (data) => {
       if (data?.error) {
         toast.error(data.error);
@@ -87,16 +99,31 @@ export const usePatentSocket = (roomId) => {
       socket.emit("join-patent-room", roomId);
     }
 
-    // Main Drafts
+    // Basic Drafts
     socket.on("generation-finished", handleGenerationFinished);
     socket.on("non-provisional-generation-finished", handleGenerationFinished);
     socket.on("normal-search-generation-finished", handleGenerationFinished);
+
+    // Broad Drafts
+    socket.on("broad-generation-finished", handleGenerationFinished);
+    socket.on(
+      "non-provisional-broad-generation-finished",
+      handleGenerationFinished,
+    );
+
+    // Technical Drafts
+    socket.on("technical-generation-finished", handleGenerationFinished);
+    socket.on(
+      "non-provisional-technical-generation-finished",
+      handleGenerationFinished,
+    );
 
     // Add-ons
     socket.on("diagram-generation-finished", handleAddonFinished);
     socket.on("license-generation-finished", handleAddonFinished);
     socket.on("deep-search-generation-finished", handleAddonFinished);
 
+    // Cleanup listeners
     return () => {
       socket.off("generation-finished", handleGenerationFinished);
       socket.off(
@@ -104,6 +131,19 @@ export const usePatentSocket = (roomId) => {
         handleGenerationFinished,
       );
       socket.off("normal-search-generation-finished", handleGenerationFinished);
+
+      socket.off("broad-generation-finished", handleGenerationFinished);
+      socket.off(
+        "non-provisional-broad-generation-finished",
+        handleGenerationFinished,
+      );
+
+      socket.off("technical-generation-finished", handleGenerationFinished);
+      socket.off(
+        "non-provisional-technical-generation-finished",
+        handleGenerationFinished,
+      );
+
       socket.off("diagram-generation-finished", handleAddonFinished);
       socket.off("license-generation-finished", handleAddonFinished);
       socket.off("deep-search-generation-finished", handleAddonFinished);

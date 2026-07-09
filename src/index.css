@@ -13,7 +13,7 @@ body {
   padding: 0;
 }
 
-h1,
+/* h1,
 h2,
 h3,
 h4,
@@ -26,7 +26,7 @@ div {
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-}
+} */
 
 :root {
   --text: #6b6375;

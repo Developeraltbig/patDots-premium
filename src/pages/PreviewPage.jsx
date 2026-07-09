@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Check, Lock } from "lucide-react";
 import Header from "../components/home/Header";
+import { getGlobalProjectTitle } from "../utils/stringHelpers";
 
 // RTK Query Hook
 import { useGetDraftByIdQuery } from "../store/slices/patentApi";
@@ -145,11 +146,7 @@ const PreviewPage = () => {
           {/* LEFT COLUMN: Document */}
           <div className="preview-document-col">
             <div className="document-header">
-              {(
-                sections?.title?.content ||
-                sections?.title_of_invention?.content ||
-                "Untitled Invention"
-              ).replace(/<[^>]+>/g, "")}
+              {getGlobalProjectTitle(currentDraft)}
             </div>
 
             <div className="document-body custom-scrollbar">

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getPendingDrafts } from "../../utils/draftqueueHelper";
+import { getGlobalProjectTitle } from "../../utils/stringHelpers";
 import {
   FileText,
   Copy,
@@ -225,13 +226,11 @@ const Draft = () => {
 
   useEffect(() => {
     if (patent && !hasInitializedTab) {
-      let initialTab = "draft"; // default
+      let initialTab = "draft";
 
-      // Check what they just clicked/generated using localStorage
       const pending = getPendingDrafts();
       const localType = pending[id]?.draftType;
 
-      // Smart routing logic based on purchased addons or intent
       if (localType === "normal_search" && patent.addons?.searchStatus) {
         initialTab = "search";
       } else if (
@@ -244,9 +243,7 @@ const Draft = () => {
         patent.addons?.provisionalDraftStatus
       ) {
         initialTab = "draft";
-      }
-      // Fallbacks for legacy patents or direct navigations
-      else if (
+      } else if (
         patent.addons?.searchStatus &&
         !patent.addons?.provisionalDraftStatus &&
         !patent.addons?.nonprovisionalDraftStatus
@@ -475,7 +472,7 @@ const Draft = () => {
     patent?.inventionText?.substring(0, 30) ||
     "Untitled Invention";
 
-  const projectTitle = String(rawTitle).replace(/<[^>]+>/g, "");
+  const projectTitle = getGlobalProjectTitle(patent);
 
   // Check if current variant is actively generating
   const isGeneratingActiveVariant = isCurrentlyNonProv
@@ -928,10 +925,7 @@ const Draft = () => {
 
         {/* --- 3C. USPTO FORM VIEW --- */}
         {isUsptoFormView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             {/* Passing RTK refetch down so forms can refresh state instantly */}
             <USPTOFormGenerator patentData={patent} setPatentData={refetch} />
           </div>
@@ -939,40 +933,28 @@ const Draft = () => {
 
         {/* --- 3D. NDA VIEW --- */}
         {isNdaView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             <NdaGenerator patentData={patent} setPatentData={refetch} />
           </div>
         )}
 
         {/* --- 3E. LICENSEES VIEW --- */}
         {isLicenseeView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             <LicenseeGenerator patentData={patent} />
           </div>
         )}
 
         {/* --- 3F. DIAGRAMS VIEW --- */}
         {isDiagramsView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             <DiagramsGenerator patentData={patent} />
           </div>
         )}
 
         {/* --- 3G. SEARCH VIEW --- */}
         {isSearchView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             <SearchGenerator
               patentData={patent}
               isUnlocked={patent.addons?.searchStatus === true}
@@ -982,10 +964,7 @@ const Draft = () => {
 
         {/* --- 3H. DEEP SEARCH VIEW --- */}
         {isDeepSearchView && (
-          <div
-            className="workspace-scroll-container custom-scrollbar"
-            style={{ padding: "0 24px" }}
-          >
+          <div className="workspace-scroll-container custom-scrollbar">
             <DeepSearchGenerator
               patentData={patent}
               isUnlocked={patent.addons?.deepSearchStatus === true}

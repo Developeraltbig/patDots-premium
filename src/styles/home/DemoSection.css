@@ -82,7 +82,7 @@
   color: #71717a;
   line-height: 1.7;
   margin: 0;
-  text-align: end;
+  /* text-align: end; */
 }
 
 /* --- GRID LAYOUT --- */

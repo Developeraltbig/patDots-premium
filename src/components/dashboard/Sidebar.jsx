@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { FileEdit, LogOut, Menu, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { getGlobalProjectTitle } from "../../utils/stringHelpers";
 
 // RTK Query Hooks
 import { useGetUserDraftsQuery } from "../../store/slices/patentApi";
@@ -55,12 +56,15 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* --- MOBILE HAMBURGER BUTTON --- */}
-      <button className="mobile-menu-btn" onClick={() => setIsOpen(true)}>
-        <Menu size={24} />
-      </button>
+      <div className="mobile-top-bar">
+        <button className="mobile-menu-btn" onClick={() => setIsOpen(true)}>
+          <Menu size={28} color="#ffffff" />
+        </button>
+        <Link to="/my-drafts" className="mobile-brand-link">
+          <img src={L1} alt="PatDots.ai Logo" className="mobile-logo-image" />
+        </Link>
+      </div>
 
-      {/* --- MOBILE DARK OVERLAY --- */}
       <div
         className={`sidebar-overlay ${isOpen ? "open" : ""}`}
         onClick={() => setIsOpen(false)}
@@ -111,12 +115,11 @@ const Sidebar = () => {
               const draftType =
                 draft.draftType === "nonprovisional"
                   ? "Non-Prov"
-                  : "Provisional";
-              const title =
-                draft.draftType === "nonprovisional"
-                  ? draft.nonProvisional?.basic_sections?.title_of_invention
-                      ?.content
-                  : draft.provisional?.basic_sections?.title?.content;
+                  : draft.draftType === "normal_search"
+                    ? "Search"
+                    : "Provisional";
+
+              const title = getGlobalProjectTitle(draft);
 
               return (
                 <div
@@ -127,7 +130,8 @@ const Sidebar = () => {
                   <div className="draft-meta">
                     <span className="draft-meta-text">{draftType}</span>
                   </div>
-                  <h4 className="draft-title">{getTruncatedTitle(title)}</h4>
+
+                  <h4 className="draft-title">{title}</h4>
                 </div>
               );
             })

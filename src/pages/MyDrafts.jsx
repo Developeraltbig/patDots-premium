@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Edit3, FileText } from "lucide-react";
 import { patentApi } from "../store/slices/patentApi";
 import "../styles/MyDrafts.css";
+import { getGlobalProjectTitle } from "../utils/stringHelpers";
 
 const MyDrafts = () => {
   const navigate = useNavigate();
@@ -23,16 +24,9 @@ const MyDrafts = () => {
     });
   };
 
-  // Filter projects based on the search term matching the title
   const filteredProjects = projects.filter((p) => {
-    const title =
-      p.draftType === "nonprovisional"
-        ? p.nonProvisional?.basic_sections?.title_of_invention?.content
-        : p.provisional?.basic_sections?.title?.content;
-
-    // Strip HTML tags for clean searching
-    const cleanTitle = (title || "").replace(/<[^>]+>/g, "");
-    return cleanTitle.toLowerCase().includes(searchTerm.toLowerCase());
+    const title = getGlobalProjectTitle(p);
+    return title.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
@@ -61,20 +55,19 @@ const MyDrafts = () => {
       ) : (
         <div className="projects-list-container">
           {filteredProjects.map((p) => {
-            const title =
-              p.draftType === "nonprovisional"
-                ? p.nonProvisional?.basic_sections?.title_of_invention?.content
-                : p.provisional?.basic_sections?.title?.content;
-
-            const cleanTitle = (title || "Untitled Draft").replace(
-              /<[^>]+>/g,
-              "",
-            );
+            const cleanTitle = getGlobalProjectTitle(p);
 
             const isPaid =
               p.payments?.status === "completed" ||
               p.payment?.status === "completed" ||
               p.paymentStatus === "paid";
+
+            const typeLabel =
+              p.draftType === "nonprovisional"
+                ? "Non-Provisional"
+                : p.draftType === "normal_search"
+                  ? "Search Report"
+                  : "Provisional";
 
             return (
               <div className="project-list-card" key={p._id}>
@@ -94,9 +87,7 @@ const MyDrafts = () => {
                       className="status-badge-draft"
                       style={{ textTransform: "capitalize" }}
                     >
-                      {p.draftType === "nonprovisional"
-                        ? "Non-Provisional"
-                        : "Provisional"}
+                      {typeLabel}
                     </span>
                   </div>
                   <div className="card-actions">

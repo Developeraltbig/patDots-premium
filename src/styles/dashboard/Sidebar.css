@@ -22,6 +22,10 @@
   height: 40px;
 }
 
+.mobile-top-bar {
+  display: none;
+}
+
 /* Hide Mobile Buttons on Desktop */
 .mobile-menu-btn,
 .mobile-close-btn,
@@ -188,34 +192,53 @@
   color: #ef4444;
 }
 
-/* ========================================================
-   📱 MOBILE RESPONSIVE STYLES
-======================================================== */
 @media (max-width: 1024px) {
-  /* 1. Hamburger Menu Button (Fixed top left) */
+  /* 1. NEW: Mobile Top Bar (Dark Header) */
+  .mobile-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    background-color: #0b0f19; /* Matches the dark sidebar theme */
+    z-index: 90; /* Underneath the sidebar overlay */
+    padding: 0 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .mobile-brand-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .mobile-logo-image {
+    height: 32px; /* Perfect size for mobile header */
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* 2. Hamburger Menu Button (Updated for dark header) */
   .mobile-menu-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 90; /* High enough to be over content, lower than overlay */
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px;
+    background: transparent;
+    border: none;
+    padding: 4px;
     cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    color: #0f172a;
-    transition: background-color 0.2s;
+    color: #ffffff;
+    transition: opacity 0.2s ease;
   }
 
   .mobile-menu-btn:active {
-    background-color: #f1f5f9;
+    opacity: 0.6;
   }
 
-  /* 2. Sidebar Overlay (Dark Backdrop) */
+  /* 3. Sidebar Overlay (Dark Backdrop) */
   .sidebar-overlay {
     display: block;
     position: fixed;
@@ -223,9 +246,9 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(15, 23, 42, 0.6); /* Dark slate semi-transparent */
-    backdrop-filter: blur(3px); /* Smooth premium blur */
-    z-index: 95; /* Behind sidebar, over content */
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(3px);
+    z-index: 95;
     opacity: 0;
     visibility: hidden;
     transition:
@@ -238,19 +261,19 @@
     visibility: visible;
   }
 
-  /* 3. The Sidebar itself (Slide in/out) */
+  /* 4. The Sidebar itself (Slide in/out) */
   .premium-sidebar {
-    transform: translateX(-100%); /* Hidden off-screen to the left */
+    transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100; /* Highest z-index */
-    box-shadow: 10px 0 25px rgba(0, 0, 0, 0.5); /* Drop shadow when open */
+    z-index: 100;
+    box-shadow: 10px 0 25px rgba(0, 0, 0, 0.5);
   }
 
   .premium-sidebar.open {
-    transform: translateX(0); /* Slide into view */
+    transform: translateX(0);
   }
 
-  /* 4. Close button inside the sidebar */
+  /* 5. Close button inside the sidebar */
   .mobile-close-btn {
     display: block;
     background: transparent;
