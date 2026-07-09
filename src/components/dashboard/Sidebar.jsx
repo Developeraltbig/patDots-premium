@@ -125,9 +125,7 @@ const Sidebar = () => {
                   onClick={() => navigate(`/draft/${draft.publicId}`)}
                 >
                   <div className="draft-meta">
-                    <span className="draft-meta-text">
-                      {draftType} · {planFormatted}
-                    </span>
+                    <span className="draft-meta-text">{draftType}</span>
                   </div>
                   <h4 className="draft-title">{getTruncatedTitle(title)}</h4>
                 </div>

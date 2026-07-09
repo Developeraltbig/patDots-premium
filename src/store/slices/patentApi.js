@@ -90,11 +90,11 @@ export const patentApi = apiSlice.injectEndpoints({
     }),
 
     translateDocument: builder.mutation({
-      query: ({ id, targetLanguage }) => ({
+      query: ({ id, targetLanguage, type }) => ({
         url: `/api/patents/${id}/translate`,
         method: "POST",
-        body: { targetLanguage },
-        responseHandler: (response) => response.blob(), // REQUIRED FOR BLOB
+        body: { targetLanguage, type },
+        responseHandler: (response) => response.blob(),
       }),
     }),
 

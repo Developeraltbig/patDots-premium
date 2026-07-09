@@ -43,7 +43,15 @@ import {
   useGetDraftByIdQuery,
   useRegenerateDraftMutation,
   useUpdateSectionMutation,
+  useDownloadPatentPdfMutation,
+  useDownloadPatentDocxMutation,
+  useTranslateDocumentMutation,
 } from "../../store/slices/patentApi";
+
+import {
+  useCreateOrderMutation,
+  useVerifyPaymentMutation,
+} from "../../store/slices/paymentApi";
 
 import Sidebar from "./Sidebar";
 import USPTOFormGenerator from "./USPTOFormGenerator";
@@ -98,6 +106,22 @@ const TABS = [
     addonKey: "deepSearchStatus",
     icon: <Target size={16} />,
   },
+];
+
+const ALL_LANGUAGES = [
+  { code: "zh", label: "Chinese (Simplified)" },
+  { code: "zh-TW", label: "Chinese (Traditional)" },
+  { code: "ja", label: "Japanese" },
+  { code: "ko", label: "Korean" },
+  { code: "de", label: "German" },
+  { code: "fr", label: "French" },
+  { code: "es", label: "Spanish" },
+  { code: "pt", label: "Portuguese" },
+  { code: "it", label: "Italian" },
+  { code: "nl", label: "Dutch" },
+  { code: "ru", label: "Russian" },
+  { code: "ar", label: "Arabic" },
+  { code: "he", label: "Hebrew" },
 ];
 
 const PROV_SECTIONS = [
@@ -169,6 +193,35 @@ const Draft = () => {
 
   const [editingSection, setEditingSection] = useState(null);
   const [editContent, setEditContent] = useState("");
+  const [downloadPatentPdf] = useDownloadPatentPdfMutation();
+  const [downloadPatentDocx] = useDownloadPatentDocxMutation();
+  const [translateDocument] = useTranslateDocumentMutation();
+  const [createOrder] = useCreateOrderMutation();
+  const [verifyPayment] = useVerifyPaymentMutation();
+
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = React.useRef(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const [showDraftLangModal, setShowDraftLangModal] = useState(false);
+  const [selectedNewDraftLangs, setSelectedNewDraftLangs] = useState([]);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Calculate Languages
+  const purchasedDraftLangs = patent?.addons?.draftTranslations || [];
+  const availableDraftLanguages = ALL_LANGUAGES.filter(
+    (lang) =>
+      purchasedDraftLangs.includes(lang.code) ||
+      purchasedDraftLangs.includes(lang.label),
+  );
+  const unpurchasedLanguages = ALL_LANGUAGES.filter(
+    (lang) =>
+      !purchasedDraftLangs.includes(lang.code) &&
+      !purchasedDraftLangs.includes(lang.label),
+  );
+  const purchasedLabels = availableDraftLanguages
+    .map((l) => l.label)
+    .join(", ");
 
   useEffect(() => {
     if (patent && !hasInitializedTab) {
@@ -210,6 +263,19 @@ const Draft = () => {
     }
   }, [patent, hasInitializedTab, id]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        downloadMenuRef.current &&
+        !downloadMenuRef.current.contains(event.target)
+      ) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const quillModules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -247,6 +313,132 @@ const Draft = () => {
     } catch (error) {
       toast.error(error?.data?.message || "Failed to update section.");
     }
+  };
+
+  const handleDownload = async (format) => {
+    setShowDownloadMenu(false);
+    toast.info(`Generating ${format.toUpperCase()}...`);
+
+    // Identifies exactly what the user is looking at (e.g., "provisional_technical")
+    const draftType = isCurrentlyNonProv ? "nonprovisional" : "provisional";
+    const payloadType = `${draftType}_${activeVariant}`;
+
+    try {
+      let blob;
+      if (format === "pdf") {
+        blob = await downloadPatentPdf({ id, type: payloadType }).unwrap();
+      } else {
+        blob = await downloadPatentDocx({ id, type: payloadType }).unwrap();
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Patent_Draft_${activeVariant}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Download complete!");
+    } catch (error) {
+      toast.error("Failed to download file.");
+    }
+  };
+
+  const handleTranslateDownload = async (langCode, langLabel) => {
+    setIsTranslating(true);
+    toast.info(`Translating to ${langLabel}...`);
+    setShowDownloadMenu(false);
+
+    const draftType = isCurrentlyNonProv ? "nonprovisional" : "provisional";
+    const payloadType = `${draftType}_${activeVariant}`;
+
+    try {
+      const blob = await translateDocument({
+        id,
+        targetLanguage: "Spanish",
+        type: payloadType, // Sends the active variant
+      }).unwrap();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Patent_Draft_${activeVariant}_${langLabel.replace(/\s+/g, "_")}.docx`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success(`${langLabel} draft downloaded!`);
+    } catch (error) {
+      toast.error("Translation failed. Please try again later.");
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handlePurchaseDraftLangs = async () => {
+    if (selectedNewDraftLangs.length === 0) return;
+    setIsProcessingPayment(true);
+
+    const rzpScript = document.createElement("script");
+    rzpScript.src = "https://checkout.razorpay.com/v1/checkout.js";
+    document.body.appendChild(rzpScript);
+
+    rzpScript.onload = async () => {
+      try {
+        const orderRes = await createOrder({
+          draftId: patent.draftId,
+          addons: { draftTranslations: ["Spanish"] },
+        }).unwrap();
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: orderRes.amount,
+          currency: orderRes.currency,
+          name: "PatDots",
+          description: `Draft Translations (${selectedNewDraftLangs.length} languages)`,
+          order_id: orderRes.id,
+          handler: async function (response) {
+            try {
+              const verifyRes = await verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                draftId: patent.draftId,
+                userEmail: "altbigdeveloper3@gmail.com",
+                userName: "altbig",
+              }).unwrap();
+
+              if (verifyRes.success) {
+                toast.success("Languages purchased successfully!");
+                refetch(); // Instantly update RTK Query Cache to unlock dropdown
+                setShowDraftLangModal(false);
+                setSelectedNewDraftLangs([]);
+              }
+            } catch (err) {
+              toast.error("Payment verification failed.");
+            } finally {
+              setIsProcessingPayment(false);
+            }
+          },
+          theme: { color: "#2563eb" },
+          modal: { ondismiss: () => setIsProcessingPayment(false) },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        toast.error("Could not initiate payment.");
+        setIsProcessingPayment(false);
+      }
+    };
+  };
+
+  const toggleNewDraftLang = (code) => {
+    setSelectedNewDraftLangs((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+    );
   };
 
   if (isLoading || !patent) {
@@ -467,15 +659,84 @@ const Draft = () => {
                   </div>
 
                   <div className="document-actions">
-                    <button className="doc-action-btn">
-                      <Globe size={14} /> Translate
-                    </button>
-                    <button
-                      className="doc-action-btn"
-                      onClick={() => navigate(`/draft/${id}/export`)}
+                    <div
+                      className="download-dropdown-wrapper"
+                      ref={downloadMenuRef}
                     >
-                      <Download size={14} /> Download
-                    </button>
+                      <button
+                        className="doc-action-btn"
+                        onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                      >
+                        <Download size={14} /> Download {isTranslating && "..."}
+                      </button>
+
+                      {showDownloadMenu && (
+                        <div className="download-menu">
+                          <div className="menu-section-label">
+                            Standard Format
+                          </div>
+                          <button onClick={() => handleDownload("docx")}>
+                            <span className="file-icon docx">W</span> Word
+                            Document (English)
+                          </button>
+                          <button onClick={() => handleDownload("pdf")}>
+                            <span className="file-icon pdf">PDF</span> PDF
+                            Document (English)
+                          </button>
+
+                          {availableDraftLanguages.length > 0 && (
+                            <>
+                              <div
+                                className="menu-section-label"
+                                style={{
+                                  borderTop: "1px solid #f1f5f9",
+                                  marginTop: "8px",
+                                  paddingTop: "8px",
+                                }}
+                              >
+                                Draft Translations
+                              </div>
+                              {availableDraftLanguages.map((lang) => (
+                                <button
+                                  key={lang.code}
+                                  onClick={() =>
+                                    handleTranslateDownload(
+                                      lang.code,
+                                      lang.label,
+                                    )
+                                  }
+                                >
+                                  <span className="lang-code-abbr">
+                                    {lang.code.toUpperCase()}
+                                  </span>{" "}
+                                  {lang.label}
+                                </button>
+                              ))}
+                            </>
+                          )}
+
+                          {unpurchasedLanguages.length > 0 && (
+                            <div
+                              style={{
+                                borderTop: "1px solid #f1f5f9",
+                                marginTop: "4px",
+                              }}
+                            >
+                              <button
+                                className="add-more-langs-button"
+                                onClick={() => {
+                                  setShowDownloadMenu(false);
+                                  setShowDraftLangModal(true);
+                                }}
+                              >
+                                <span className="add-more-icon">+</span> Add
+                                more languages ($29)
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -729,6 +990,88 @@ const Draft = () => {
               patentData={patent}
               isUnlocked={patent.addons?.deepSearchStatus === true}
             />
+          </div>
+        )}
+
+        {showDraftLangModal && (
+          <div className="nda-lang-modal-overlay">
+            <div className="nda-lang-modal">
+              <div className="nda-lang-modal-header">
+                <div>
+                  <h3>Add Draft Translations</h3>
+                  <p>
+                    Select languages to translate.{" "}
+                    <strong>$29 per language.</strong>
+                  </p>
+                </div>
+                <button
+                  className="btn-close-modal"
+                  onClick={() => setShowDraftLangModal(false)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="nda-lang-modal-body">
+                {purchasedLabels && (
+                  <div className="nda-purchased-box">
+                    Already purchased: {purchasedLabels}
+                  </div>
+                )}
+                <div className="nda-avail-langs-section">
+                  <h4>AVAILABLE LANGUAGES</h4>
+                  <div className="nda-lang-pills">
+                    {unpurchasedLanguages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        className={`nda-lang-pill ${selectedNewDraftLangs.includes(lang.code) ? "selected" : ""}`}
+                        onClick={() => toggleNewDraftLang(lang.code)}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="nda-lang-modal-footer">
+                <div className="nda-footer-left">
+                  <p className="nda-selected-text">
+                    Selected:{" "}
+                    {selectedNewDraftLangs.length > 0
+                      ? selectedNewDraftLangs
+                          .map(
+                            (c) =>
+                              ALL_LANGUAGES.find((l) => l.code === c).label,
+                          )
+                          .join(", ")
+                      : "None"}
+                  </p>
+                  <h3 className="nda-total-price">
+                    ${(selectedNewDraftLangs.length * 29).toFixed(2)}
+                  </h3>
+                </div>
+                <div className="nda-footer-right">
+                  <button
+                    className="btn-cancel-modal"
+                    onClick={() => setShowDraftLangModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-purchase-modal"
+                    onClick={handlePurchaseDraftLangs}
+                    disabled={
+                      selectedNewDraftLangs.length === 0 || isProcessingPayment
+                    }
+                  >
+                    {isProcessingPayment
+                      ? "Processing..."
+                      : "Purchase & Translate"}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
